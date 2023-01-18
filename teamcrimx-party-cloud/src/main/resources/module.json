@@ -1,9 +1,9 @@
 {
-  "group": "net.teamcrimx.cloud.party",
+  "group": "net.teamcrimx.party.cloud",
   "name": "teamcrimx-party",
   "version": "1.0",
   "author": "fel1x",
-  "main": "net.teamcrimx.cloud.party.PartyModule",
+  "main": "net.teamcrimx.party.cloud.PartyModule",
   "description": "teamcrimx.net Party Module",
   "website": "https://teamcrimx.net",
   "dataFolder": "modules/teamcrimx-party"

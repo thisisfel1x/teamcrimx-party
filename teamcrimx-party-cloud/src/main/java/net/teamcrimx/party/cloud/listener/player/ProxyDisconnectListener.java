@@ -9,11 +9,11 @@ import net.teamcrimx.party.cloud.PartyModule;
 
 import java.util.UUID;
 
-public class ProxyDisconnectEvent {
+public class ProxyDisconnectListener {
 
     private final PartyModule partyModule;
 
-    public ProxyDisconnectEvent(PartyModule partyModule) {
+    public ProxyDisconnectListener(PartyModule partyModule) {
         this.partyModule = partyModule;
     }
 
@@ -41,9 +41,13 @@ public class ProxyDisconnectEvent {
             if(simpleParty.partyLeader() == cloudPlayer.uniqueId()) {
                 if(simpleParty.partyMembers().size() > 0) {
                     UUID newLeader = simpleParty.partyMembers().stream().findFirst().get();
-                    simpleParty.partyMembers().
+                    // TODO: set new leader, not possible using record in SimpleParty
                 }
             }
+
+            cloudPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
+            cloudPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
+            this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
 
         }
 
