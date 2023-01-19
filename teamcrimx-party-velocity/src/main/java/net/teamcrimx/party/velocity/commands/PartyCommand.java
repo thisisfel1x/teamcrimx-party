@@ -2,6 +2,7 @@ package net.teamcrimx.party.velocity.commands;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
+import eu.cloudnetservice.common.document.gson.JsonDocument;
 import eu.cloudnetservice.driver.CloudNetDriver;
 import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
@@ -12,6 +13,7 @@ import net.teamcrimx.party.api.PartyConstants;
 import net.teamcrimx.party.velocity.VelocityParty;
 
 import java.util.List;
+import java.util.UUID;
 
 public class PartyCommand implements SimpleCommand {
 
@@ -49,6 +51,18 @@ public class PartyCommand implements SimpleCommand {
                         ChannelMessage.builder()
                                 .channel(PartyConstants.PARTY_CHANNEL)
                                 .message(PartyConstants.PARTY_CREATION_MESSAGE)
+                                .buffer(DataBuf.empty().writeUniqueId(player.getUniqueId()))
+                                .targetNodes()
+                                .build().send();
+                    }
+                case "leave":
+                    if(!cloudPlayer.properties().contains(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)
+                            && !cloudPlayer.properties().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)) {
+                        player.sendMessage(Component.text("du bist in keiner party"));
+                    } else {
+                        ChannelMessage.builder()
+                                .channel(PartyConstants.PARTY_CHANNEL)
+                                .message(PartyConstants.PARTY_LEAVE_MESSAGE)
                                 .buffer(DataBuf.empty().writeUniqueId(player.getUniqueId()))
                                 .targetNodes()
                                 .build().send();

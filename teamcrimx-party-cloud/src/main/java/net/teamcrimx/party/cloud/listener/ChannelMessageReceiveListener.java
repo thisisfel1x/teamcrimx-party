@@ -23,7 +23,7 @@ public class ChannelMessageReceiveListener {
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_JOIN_MESSAGE)) {
                 // TODO: add player to party
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LEAVE_MESSAGE)) {
-                // TODO: remove player from party
+                this.partyModule.getPartyManager().leaveParty(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_PROMOTE_MESSAGE)) {
                 // TODO: promote player x as party leader
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_KICK_MESSAGE)) {

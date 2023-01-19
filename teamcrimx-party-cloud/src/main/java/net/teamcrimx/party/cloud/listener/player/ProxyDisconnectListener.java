@@ -7,6 +7,7 @@ import net.teamcrimx.party.api.PartyConstants;
 import net.teamcrimx.party.api.SimpleParty;
 import net.teamcrimx.party.cloud.PartyModule;
 
+import java.util.Random;
 import java.util.UUID;
 
 public class ProxyDisconnectListener {
@@ -40,8 +41,13 @@ public class ProxyDisconnectListener {
 
             if(simpleParty.partyLeader() == cloudPlayer.uniqueId()) {
                 if(simpleParty.partyMembers().size() > 0) {
-                    UUID newLeader = simpleParty.partyMembers().stream().findFirst().get();
-                    // TODO: set new leader, not possible using record in SimpleParty
+                    UUID newLeader = simpleParty.partyMembers().get(new Random().nextInt(simpleParty.partyMembers().size()));
+                    simpleParty.partyLeader(newLeader);
+                    this.partyModule.getPartiesTracker().activeParties().put(partyUUID, simpleParty);
+                    System.out.println(this.partyModule.getPartiesTracker().activeParties().get(partyUUID).toString());
+                } else {
+                    this.partyModule.getPartiesTracker().activeParties().remove(partyUUID);
+                    System.out.println(this.partyModule.getPartiesTracker().activeParties().size());
                 }
             }
 

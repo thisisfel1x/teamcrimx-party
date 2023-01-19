@@ -44,4 +44,21 @@ public class PartyManager {
 
     }
 
+    public void leaveParty(DataBuf content) {
+        UUID playerUUID = content.readUniqueId();
+        CloudPlayer cloudPlayer = this.partyModule.playerManager().onlinePlayer(playerUUID);
+        if(cloudPlayer == null) {
+            return;
+        }
+
+        UUID partyId = cloudPlayer.properties().get(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY, UUID.class);
+        SimpleParty simpleParty = this.partyModule.getPartiesTracker().activeParties().get(partyId);
+
+        simpleParty.partyMembers().remove(playerUUID);
+
+        if(playerUUID == simpleParty.partyLeader()) {
+
+        }
+
+    }
 }
