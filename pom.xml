@@ -8,9 +8,9 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
+        <module>teamcrimx-party-api</module>
         <module>teamcrimx-party-velocity</module>
         <module>teamcrimx-party-cloud</module>
-        <module>teamcrimx-party-api</module>
     </modules>
 
     <properties>

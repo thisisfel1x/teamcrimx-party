@@ -1,5 +1,6 @@
 package net.teamcrimx.party.cloud.track;
 
+import eu.cloudnetservice.common.document.gson.JsonDocument;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
@@ -82,6 +83,8 @@ public class PartyManager {
         partyPlayers.add(playerId);
 
         SimpleParty simpleParty = new SimpleParty(partyId, playerId, partyPlayers);
+
+        System.out.println(simpleParty.toString());
 
         this.partyModule.getPartiesTracker().activeParties().put(partyId, simpleParty);
         cloudPlayer.playerExecutor().sendChatMessage(Component.text("Deine Party wurde erstellt"));
@@ -231,6 +234,7 @@ public class PartyManager {
         CloudPlayer cloudPlayer = this.partyModule.playerManager().firstOnlinePlayer(playerName);
 
         if(cloudPlayer == null) {
+            System.out.println("null");
             // TODO: send fallback message to player who tried to invite player x
         } else {
             this.invite(cloudPlayer, content.readUniqueId());
@@ -241,31 +245,41 @@ public class PartyManager {
         // Step 1: basic checks
         SimpleParty simpleParty = this.getPartyByPlayerId(senderId);
         if(simpleParty == null) {
+            System.out.println("a");
             // TODO: kp
             return;
         }
 
         // perm check
-        if(senderId != simpleParty.partyLeader()) {
+        if(!senderId.toString().equalsIgnoreCase(simpleParty.partyLeader().toString())) {
+            System.out.println(senderId);
+            System.out.println(simpleParty.partyLeader());
+            System.out.println("b");
             return; // TODO: send message kein admin
         }
 
         // wtf spieler will sich selber einladen
         if(senderId == cloudPlayerToInvite.uniqueId()) {
+            System.out.println("c");
+            return;
+        }
+
+        if(simpleParty.partyMembers().contains(cloudPlayerToInvite.uniqueId())) {
+            System.out.println("d");
             return;
         }
 
         // Step 2 - check if player is already in a party
         if(this.isInParty(cloudPlayerToInvite)) {
+            System.out.println("in party");
             return; // spieler hat bereits eine party
         }
 
         // Step 3 - add document property with id and expiration
         // TODO: implement check for type safety
-        HashMap<UUID, Long> invites = cloudPlayerToInvite.properties().get(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY,
-                HashMap.class, new HashMap<UUID, Long>());
+        JsonDocument invites = cloudPlayerToInvite.properties().getDocument("invites");
 
-        invites.put(simpleParty.partyId(), System.currentTimeMillis() + (5 * 60 * 1000)); // expiration after 5 min
+        invites.append(simpleParty.partyId().toString(), System.currentTimeMillis() + (5 * 60 * 1000)); // expiration after 5 min
 
         cloudPlayerToInvite.properties().append(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY, invites);
         this.partyModule.playerManager().updateOnlinePlayer(cloudPlayerToInvite);
@@ -302,16 +316,15 @@ public class PartyManager {
             return;
         }
 
-        HashMap<UUID, Long> invites = invitedCloudPlayer.properties().get(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY,
-                HashMap.class, new HashMap<UUID, Long>());
+       JsonDocument invites = invitedCloudPlayer.properties().getDocument(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
 
         // Check expiration
-        if(!invites.containsKey(simpleParty.partyId())) {
+        if(!invites.contains(simpleParty.partyId().toString())) {
             invitedCloudPlayer.playerExecutor().sendChatMessage(Component.text("du hast keine einladung erhalten"));
             return;
         }
 
-        if(System.currentTimeMillis() > invites.get(simpleParty.partyId())) {
+        if(System.currentTimeMillis() > invites.getLong(simpleParty.partyId().toString())) {
             invitedCloudPlayer.playerExecutor().sendChatMessage(Component.text("die einladung ist abgelaufen"));
         }
 
@@ -326,5 +339,17 @@ public class PartyManager {
 
         invitedCloudPlayer.playerExecutor().sendChatMessage(Component.text("du bist der party beigetreten"));
 
+    }
+
+    public void delete(DataBuf content) {
+        CloudPlayer cloudPlayer = getCloudPlayerById(content.readUniqueId());
+        if(cloudPlayer == null) {
+            return;
+        }
+
+        cloudPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
+        cloudPlayer.properties().remove(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
+        cloudPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
+        this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
     }
 }
