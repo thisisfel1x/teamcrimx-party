@@ -52,11 +52,24 @@ public class PartyManager {
         return null;
     }
 
+    public boolean isInParty(CloudPlayer cloudPlayer) {
+        return cloudPlayer.properties().contains(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY)
+                && cloudPlayer.properties().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, false);
+    }
+
+    public boolean isPartyLeader(CloudPlayer cloudPlayer, SimpleParty simpleParty) {
+        return cloudPlayer.uniqueId() == simpleParty.partyLeader();
+    }
+
     public void createParty(@NotNull DataBuf content) {
         UUID playerId = content.readUniqueId();
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
         if(cloudPlayer == null) {
             return; // TODO: Fehler
+        }
+
+        if(this.isInParty(cloudPlayer)) {
+            return; // prevent of creating a party while being in a party
         }
 
         UUID partyId = UUID.randomUUID();
@@ -243,7 +256,7 @@ public class PartyManager {
         }
 
         // Step 2 - check if player is already in a party
-        if(cloudPlayerToInvite.properties().contains(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)) {
+        if(this.isInParty(cloudPlayerToInvite)) {
             return; // spieler hat bereits eine party
         }
 
@@ -277,6 +290,10 @@ public class PartyManager {
         CloudPlayer invitedCloudPlayer = this.getCloudPlayerById(invitedPlayerId);
         if(invitedCloudPlayer == null) {
             return;
+        }
+
+        if(this.isInParty(invitedCloudPlayer)) {
+            return; // prevent of joining a party while being in a party
         }
 
         SimpleParty simpleParty = this.getPartyByCloudPlayer(cloudPlayerToJoin);
