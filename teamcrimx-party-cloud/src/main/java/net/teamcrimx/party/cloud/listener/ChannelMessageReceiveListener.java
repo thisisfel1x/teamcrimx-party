@@ -25,11 +25,11 @@ public class ChannelMessageReceiveListener {
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LEAVE_MESSAGE)) {
                 this.partyModule.getPartyManager().leaveParty(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_PROMOTE_MESSAGE)) {
-                // TODO: promote player x as party leader
+                this.partyModule.getPartyManager().parsePlayerNameThenPromote(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_KICK_MESSAGE)) {
-                // TODO: kick player x from party
+                this.partyModule.getPartyManager().parsePlayerNameThenKick(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CLOSE_MESSAGE)) {
-                // TODO: delete party
+                this.partyModule.getPartyManager().closeParty(event.content());
             }
         }
     }

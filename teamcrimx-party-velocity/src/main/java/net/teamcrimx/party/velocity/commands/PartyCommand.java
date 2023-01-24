@@ -67,7 +67,38 @@ public class PartyCommand implements SimpleCommand {
                                 .targetNodes()
                                 .build().send();
                     }
+                case "promote", "kick", "invite", "accept":
+                    player.sendMessage(Component.text("bitte gebe einen spielernamen an!"));
+                case "close":
+                    ChannelMessage.builder()
+                            .channel(PartyConstants.PARTY_CHANNEL)
+                            .message(PartyConstants.PARTY_CLOSE_MESSAGE)
+                            .buffer(DataBuf.empty().writeUniqueId(player.getUniqueId()))
+                            .targetNodes()
+                            .build().send();
             }
+        } else if(invocation.arguments().length == 2) {
+            switch (invocation.arguments()[0].toLowerCase()) { // switch first argument for sub-arg-check
+                case "promote":
+                    String playerNameToPromote = invocation.arguments()[1]; // not valid yet TODO: validation check - cloud side done
+                    player.sendMessage(Component.text("versuche " + playerNameToPromote + " zu promoten"));
+                    ChannelMessage.builder()
+                            .channel(PartyConstants.PARTY_CHANNEL)
+                            .message(PartyConstants.PARTY_PROMOTE_MESSAGE)
+                            .buffer(DataBuf.empty().writeString(playerNameToPromote))
+                            .targetNodes()
+                            .build().send();
+                case "kick":
+                    String playerNameToKick = invocation.arguments()[1]; // not valid yet
+                    player.sendMessage(Component.text("versuche " + playerNameToKick + " zu kicken"));
+                    ChannelMessage.builder()
+                            .channel(PartyConstants.PARTY_CHANNEL)
+                            .message(PartyConstants.PARTY_PROMOTE_MESSAGE)
+                            .buffer(DataBuf.empty().writeString(playerNameToKick))
+                            .targetNodes()
+                            .build().send();
+            }
+
         }
 
     }

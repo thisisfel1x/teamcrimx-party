@@ -15,8 +15,7 @@ public class PartyModule extends DriverModule {
     private ActivePartiesTracker partiesTracker;
     private PartyManager partyManager;
 
-    private final PlayerManager playerManager = CloudNetDriver.instance().serviceRegistry()
-            .firstProvider(PlayerManager.class);
+    private PlayerManager playerManager;
 
     @ModuleTask(event = ModuleLifeCycle.STARTED)
     private void onStart() { // Module successfully started
@@ -26,6 +25,9 @@ public class PartyModule extends DriverModule {
 
     @ModuleTask(event = ModuleLifeCycle.LOADED)
     private void onLoad() { // Module is being loaded
+        this.playerManager = CloudNetDriver.instance().serviceRegistry()
+                .firstProvider(PlayerManager.class);
+
         this.partiesTracker = new ActivePartiesTracker();
         this.partyManager = new PartyManager(this);
     }
