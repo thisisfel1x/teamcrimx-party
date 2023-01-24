@@ -19,9 +19,9 @@ public class ChannelMessageReceiveListener {
             if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CREATION_MESSAGE)) {
                 this.partyModule.getPartyManager().createParty(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_INVITE_MESSAGE)) {
-                // TODO: invite player with invitation expiration
+                this.partyModule.getPartyManager().parsePlayerNameThenInvite(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_JOIN_MESSAGE)) {
-                // TODO: add player to party
+                this.partyModule.getPartyManager().parsePlayerNameThenJoinParty(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LEAVE_MESSAGE)) {
                 this.partyModule.getPartyManager().leaveParty(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_PROMOTE_MESSAGE)) {

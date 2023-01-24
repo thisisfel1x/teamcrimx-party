@@ -15,6 +15,7 @@ import net.teamcrimx.party.velocity.VelocityParty;
 import java.util.List;
 import java.util.UUID;
 
+// TODO: remove redundancy in switch block
 public class PartyCommand implements SimpleCommand {
 
     private final VelocityParty velocityParty;
@@ -85,7 +86,7 @@ public class PartyCommand implements SimpleCommand {
                     ChannelMessage.builder()
                             .channel(PartyConstants.PARTY_CHANNEL)
                             .message(PartyConstants.PARTY_PROMOTE_MESSAGE)
-                            .buffer(DataBuf.empty().writeString(playerNameToPromote))
+                            .buffer(DataBuf.empty().writeString(playerNameToPromote).writeUniqueId(player.getUniqueId()))
                             .targetNodes()
                             .build().send();
                 case "kick":
@@ -94,7 +95,25 @@ public class PartyCommand implements SimpleCommand {
                     ChannelMessage.builder()
                             .channel(PartyConstants.PARTY_CHANNEL)
                             .message(PartyConstants.PARTY_PROMOTE_MESSAGE)
-                            .buffer(DataBuf.empty().writeString(playerNameToKick))
+                            .buffer(DataBuf.empty().writeString(playerNameToKick).writeUniqueId(player.getUniqueId()))
+                            .targetNodes()
+                            .build().send();
+                case "invite":
+                    String playerNameToInvite = invocation.arguments()[1]; // not valid yet TODO: validation check - cloud side done
+                    player.sendMessage(Component.text("versuche " + playerNameToInvite + " einzuladen"));
+                    ChannelMessage.builder()
+                            .channel(PartyConstants.PARTY_CHANNEL)
+                            .message(PartyConstants.PARTY_INVITE_MESSAGE)
+                            .buffer(DataBuf.empty().writeString(playerNameToInvite).writeUniqueId(player.getUniqueId()))
+                            .targetNodes()
+                            .build().send();
+                case "accept":
+                    String playerNameToJoin = invocation.arguments()[1]; // not valid yet TODO: validation check - cloud side done
+                    player.sendMessage(Component.text("versuche " + playerNameToJoin + " party zu joinen"));
+                    ChannelMessage.builder()
+                            .channel(PartyConstants.PARTY_CHANNEL)
+                            .message(PartyConstants.PARTY_INVITE_MESSAGE)
+                            .buffer(DataBuf.empty().writeString(playerNameToJoin).writeUniqueId(player.getUniqueId()))
                             .targetNodes()
                             .build().send();
             }
@@ -105,7 +124,7 @@ public class PartyCommand implements SimpleCommand {
 
     @Override
     public List<String> suggest(Invocation invocation) {
-        return List.of("create", "invite", "join", "leave", "kick", "promote", "close");
+        return List.of("create", "invite", "accept", "leave", "kick", "promote", "close");
     }
 
 }

@@ -20,9 +20,9 @@ public class ProxyDisconnectListener {
 
     @EventListener
     public void on(BridgeProxyPlayerDisconnectEvent event) {
-        // TODO: check for party. move methodes. if player isn't owner of party just leave, else promote a random player
         CloudPlayer cloudPlayer = event.cloudPlayer();
 
+        // Partysystem: check and remove player if he is in an active party
         this.partyModule.getPartyManager().removeFromPartyIfIn(cloudPlayer);
 
     }

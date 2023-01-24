@@ -14,5 +14,6 @@ public class PartyConstants {
 
     public static final String HAS_PARTY_DOCUMENT_PROPERTY = "hasParty";
     public static final String PARTY_UUID_DOCUMENT_PROPERTY = "partyId";
+    public static final String PARTY_INVITATIONS_DOCUMENT_PROPERTY = "partyInvites";
 
 }
