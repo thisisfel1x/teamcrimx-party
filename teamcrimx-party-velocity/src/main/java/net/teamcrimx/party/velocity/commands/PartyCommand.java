@@ -52,17 +52,12 @@ public class PartyCommand implements SimpleCommand {
                             .build().send();
                 }
                 case "create" -> {
-                    if (cloudPlayer.properties().contains(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)
-                            && cloudPlayer.properties().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)) {
-                        player.sendMessage(Component.text("du bist bereits in einer party"));
-                    } else {
-                        ChannelMessage.builder()
-                                .channel(PartyConstants.PARTY_CHANNEL)
-                                .message(PartyConstants.PARTY_CREATION_MESSAGE)
-                                .buffer(DataBuf.empty().writeUniqueId(player.getUniqueId()))
-                                .targetNodes()
-                                .build().send();
-                    }
+                    ChannelMessage.builder()
+                            .channel(PartyConstants.PARTY_CHANNEL)
+                            .message(PartyConstants.PARTY_CREATION_MESSAGE)
+                            .buffer(DataBuf.empty().writeUniqueId(player.getUniqueId()))
+                            .targetNodes()
+                            .build().send();
                 }
                 case "leave" -> {
                     if (!cloudPlayer.properties().contains(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)

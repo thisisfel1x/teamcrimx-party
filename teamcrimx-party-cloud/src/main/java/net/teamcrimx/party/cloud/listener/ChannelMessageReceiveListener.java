@@ -19,15 +19,19 @@ public class ChannelMessageReceiveListener {
             if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CREATION_MESSAGE)) {
                 this.partyModule.getPartyManager().createParty(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_INVITE_MESSAGE)) {
-                this.partyModule.getPartyManager().parsePlayerNameThenInvite(event.content());
+                this.partyModule.getPartyManager()
+                        .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_INVITE_MESSAGE);
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_JOIN_MESSAGE)) {
-                this.partyModule.getPartyManager().parsePlayerNameThenJoinParty(event.content());
+                this.partyModule.getPartyManager()
+                        .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_JOIN_MESSAGE);
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LEAVE_MESSAGE)) {
                 this.partyModule.getPartyManager().leaveParty(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_PROMOTE_MESSAGE)) {
-                this.partyModule.getPartyManager().parsePlayerNameThenPromote(event.content());
+                this.partyModule.getPartyManager()
+                        .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_PROMOTE_MESSAGE);
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_KICK_MESSAGE)) {
-                this.partyModule.getPartyManager().parsePlayerNameThenKick(event.content());
+                this.partyModule.getPartyManager()
+                        .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_KICK_MESSAGE);
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CLOSE_MESSAGE)) {
                 this.partyModule.getPartyManager().closeParty(event.content());
             } else if(event.message().equalsIgnoreCase("delete")) {
