@@ -10,7 +10,10 @@ import net.teamcrimx.party.cloud.PartyModule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 // TODO: perm fix
 public class PartyManager {
@@ -31,14 +34,14 @@ public class PartyManager {
 
     public @Nullable SimpleParty getPartyByPlayerId(UUID playerId) {
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
-        if(cloudPlayer == null) {
+        if (cloudPlayer == null) {
             return null;
         }
         return getPartyByCloudPlayer(cloudPlayer);
     }
 
     public @Nullable SimpleParty getPartyByCloudPlayer(CloudPlayer cloudPlayer) {
-        if(cloudPlayer.properties().contains(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)
+        if (cloudPlayer.properties().contains(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)
                 && cloudPlayer.properties().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)) {
 
             UUID partyUUID = cloudPlayer.properties().get(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY,
@@ -68,7 +71,8 @@ public class PartyManager {
         switch (partyConstant) {
             case PartyConstants.PARTY_KICK_MESSAGE -> this.kick(cloudPlayer, content.readUniqueId(), false);
             case PartyConstants.PARTY_INVITE_MESSAGE -> this.invite(cloudPlayer, content.readUniqueId());
-            case PartyConstants.PARTY_PROMOTE_MESSAGE -> this.promotePlayer(cloudPlayer.uniqueId(), content.readUniqueId());
+            case PartyConstants.PARTY_PROMOTE_MESSAGE ->
+                    this.promotePlayer(cloudPlayer.uniqueId(), content.readUniqueId());
             case PartyConstants.PARTY_JOIN_MESSAGE -> this.join(cloudPlayer, content.readUniqueId());
         }
     }
@@ -76,11 +80,11 @@ public class PartyManager {
     public void createParty(@NotNull DataBuf content) {
         UUID playerId = content.readUniqueId();
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
-        if(cloudPlayer == null) {
+        if (cloudPlayer == null) {
             return; // TODO: Fehler bitte asap beheben
         }
 
-        if(this.isInParty(cloudPlayer)) {
+        if (this.isInParty(cloudPlayer)) {
             cloudPlayer.playerExecutor().sendChatMessage(Component.text("Du bist bereits in einer Party"));
             return; // prevent of creating a party while being in a party
         }
@@ -94,9 +98,9 @@ public class PartyManager {
         List<UUID> partyPlayers = new ArrayList<>();
         partyPlayers.add(playerId);
 
-        SimpleParty simpleParty = new SimpleParty(partyId, playerId, partyPlayers);
+        SimpleParty simpleParty = new SimpleParty(partyId, playerId, partyPlayers, System.currentTimeMillis());
 
-        System.out.println(simpleParty.toString());
+        System.out.println(simpleParty);
 
         this.partyModule.getPartiesTracker().activeParties().put(partyId, simpleParty);
         cloudPlayer.playerExecutor().sendChatMessage(Component.text("Deine Party wurde erstellt " + simpleParty));
@@ -146,7 +150,7 @@ public class PartyManager {
         this.partyModule.playerManager().updateOnlinePlayer(cloudPlayerToInvite);
 
         cloudPlayerToInvite.playerExecutor().sendChatMessage(Component.text("du hast einen invite von "
-                + senderId.toString() + " erhalten, rein da"));
+                + senderId + " erhalten, rein da"));
 
         sender.playerExecutor().sendChatMessage(Component.text("der spieler " + cloudPlayerToInvite.name()
                 + " wurde erfolgreich eingeladen"));
@@ -154,23 +158,23 @@ public class PartyManager {
 
     private void join(CloudPlayer cloudPlayerToJoin, UUID invitedPlayerId) {
         CloudPlayer invitedCloudPlayer = this.getCloudPlayerById(invitedPlayerId);
-        if(invitedCloudPlayer == null) {
+        if (invitedCloudPlayer == null) {
             return;
         }
 
-        if(this.isInParty(invitedCloudPlayer)) {
+        if (this.isInParty(invitedCloudPlayer)) {
             invitedCloudPlayer.playerExecutor()
                     .sendChatMessage(Component.text("Du bist bereits in einer Party und kannst somit keiner anderen Party beitreten"));
             return; // prevent of joining a party while being in a party
         }
 
         SimpleParty simpleParty = this.getPartyByCloudPlayer(cloudPlayerToJoin);
-        if(simpleParty == null) {
+        if (simpleParty == null) {
             invitedCloudPlayer.playerExecutor().sendChatMessage(Component.text("die party existiert nicht mehr"));
             return;
         }
 
-        if(simpleParty.partyMembers().contains(invitedPlayerId)) {
+        if (simpleParty.partyMembers().contains(invitedPlayerId)) {
             invitedCloudPlayer.playerExecutor().sendChatMessage(Component.text("du bist bereits in der party. warum hast du noch ein einladung"));
             return;
         }
@@ -178,12 +182,12 @@ public class PartyManager {
         JsonDocument invites = invitedCloudPlayer.properties().getDocument(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
 
         // Check expiration
-        if(!invites.contains(simpleParty.partyId().toString())) {
+        if (!invites.contains(simpleParty.partyId().toString())) {
             invitedCloudPlayer.playerExecutor().sendChatMessage(Component.text("du hast keine einladung erhalten"));
             return;
         }
 
-        if(System.currentTimeMillis() > invites.getLong(simpleParty.partyId().toString())) {
+        if (System.currentTimeMillis() > invites.getLong(simpleParty.partyId().toString())) {
             invitedCloudPlayer.playerExecutor().sendChatMessage(Component.text("die einladung ist abgelaufen"));
         }
 
@@ -205,41 +209,46 @@ public class PartyManager {
     public void leaveParty(DataBuf content) {
         UUID playerId = content.readUniqueId();
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
-        if(cloudPlayer == null) {
+        if (cloudPlayer == null) {
             return;
         }
 
         this.removeFromPartyIfIn(cloudPlayer);
     }
 
-    public void removeFromPartyIfIn(@NotNull CloudPlayer cloudPlayer) {
-            SimpleParty simpleParty = this.getPartyByCloudPlayer(cloudPlayer);
-            if(simpleParty == null) {
-                return; // TODO: kp
+    public void removeFromPartyIfIn(@Nullable CloudPlayer cloudPlayer) {
+        if(cloudPlayer == null) {
+            return;
+        }
+
+        SimpleParty simpleParty = this.getPartyByCloudPlayer(cloudPlayer);
+        if (simpleParty == null || !this.isInParty(cloudPlayer)) {
+            cloudPlayer.playerExecutor().sendChatMessage(Component.text("Du bist in keiner Party"));
+            return; // TODO: kp
+        }
+
+        if (!simpleParty.partyMembers().contains(cloudPlayer.uniqueId())) {
+            System.out.println("debug a");
+            return;
+        }
+
+        simpleParty.partyMembers().remove(cloudPlayer.uniqueId());
+
+        if (simpleParty.partyLeader() == cloudPlayer.uniqueId()) {
+            if (simpleParty.partyMembers().size() > 0) {
+                this.promotePlayer(null, cloudPlayer.uniqueId()); // promote random player because leader has disconnected
+                System.out.println(this.partyModule.getPartiesTracker().activeParties().get(simpleParty.partyId()).toString());
+            } else {
+                this.partyModule.getPartiesTracker().activeParties().remove(simpleParty.partyId());
+                System.out.println(this.partyModule.getPartiesTracker().activeParties().size());
             }
+        }
 
-            if(!simpleParty.partyMembers().contains(cloudPlayer.uniqueId())) {
-                System.out.println("debug a");
-                return;
-            }
+        cloudPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
+        cloudPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
+        this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
 
-            simpleParty.partyMembers().remove(cloudPlayer.uniqueId());
-
-            if(simpleParty.partyLeader() == cloudPlayer.uniqueId()) {
-                if(simpleParty.partyMembers().size() > 0) {
-                    this.promotePlayer( null, cloudPlayer.uniqueId()); // promote random player because leader has disconnected
-                    System.out.println(this.partyModule.getPartiesTracker().activeParties().get(simpleParty.partyId()).toString());
-                } else {
-                    this.partyModule.getPartiesTracker().activeParties().remove(simpleParty.partyId());
-                    System.out.println(this.partyModule.getPartiesTracker().activeParties().size());
-                }
-            }
-
-            cloudPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
-            cloudPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
-            this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
-
-            cloudPlayer.playerExecutor().sendChatMessage(Component.text("du hast die party verlassen"));
+        cloudPlayer.playerExecutor().sendChatMessage(Component.text("du hast die party verlassen"));
     }
 
     public void promotePlayer(@Nullable UUID playerToPromote, @Nullable UUID senderId) {
@@ -264,7 +273,7 @@ public class PartyManager {
 
         UUID newLeader;
         if (playerToPromote != null) {
-            if(!simpleParty.partyMembers().contains(playerToPromote)) {
+            if (!simpleParty.partyMembers().contains(playerToPromote)) {
                 // TODO ja moin der spieler ist nicht in der party
             }
             newLeader = playerToPromote;
@@ -277,25 +286,25 @@ public class PartyManager {
         this.partyModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
     }
 
-    public void kick(CloudPlayer cloudPlayerToKick, UUID senderId, boolean force) { // TODO: hier klappt gar nix leck mich am arsch
+    public void kick(@NotNull CloudPlayer cloudPlayerToKick, @NotNull UUID senderId, boolean force) { // TODO: hier klappt gar nix leck mich am arsch
         // Step 1: remove him from partyArrayList
         SimpleParty simpleParty = this.getPartyByPlayerId(senderId); // mistake, senderId is actual owner of party
-        if(simpleParty == null) {
+        if (simpleParty == null) {
             // TODO: kp
             return;
         }
 
         // perm check
-        if(senderId != simpleParty.partyLeader() && !force) {
+        if (senderId != simpleParty.partyLeader() && !force) {
             return; // TODO: send message kein admin
         }
 
         // wtf spieler will sich selber kicken
-        if(senderId == cloudPlayerToKick.uniqueId() && !force) {
+        if (senderId == cloudPlayerToKick.uniqueId() && !force) {
             return;
         }
 
-        if(!simpleParty.partyMembers().contains(cloudPlayerToKick.uniqueId())) {
+        if (!simpleParty.partyMembers().contains(cloudPlayerToKick.uniqueId())) {
             return; // TODO der bruder ist nicht in der party also sende nachricht
         }
 
@@ -312,16 +321,16 @@ public class PartyManager {
         cloudPlayerToKick.playerExecutor().sendChatMessage(Component.text("du wurdest aus der party gekickt du hurensohn"));
     }
 
-    public void closeParty(DataBuf content) {
+    public void closeParty(@NotNull DataBuf content) {
         UUID playerId = content.readUniqueId();
         SimpleParty simpleParty = this.getPartyByPlayerId(playerId);
 
-        if(simpleParty == null) {
+        if (simpleParty == null) {
             return; // TODO kp
         }
 
         // permission check
-        if(playerId != simpleParty.partyLeader()) {
+        if (playerId != simpleParty.partyLeader()) {
             // TODO: send message was weiß ich
             return;
         }
@@ -335,9 +344,9 @@ public class PartyManager {
 
     }
 
-    public void delete(DataBuf content) {
+    public void delete(@NotNull DataBuf content) {
         CloudPlayer cloudPlayer = getCloudPlayerById(content.readUniqueId());
-        if(cloudPlayer == null) {
+        if (cloudPlayer == null) {
             return;
         }
 
@@ -345,5 +354,34 @@ public class PartyManager {
         cloudPlayer.properties().remove(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
         cloudPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
         this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
+    }
+
+    public void sendPartyListMessage(@NotNull DataBuf content) {
+        CloudPlayer cloudPlayer = this.getCloudPlayerById(content.readUniqueId());
+
+        if (cloudPlayer == null) {
+            return;
+        }
+
+        SimpleParty simpleParty = this.getPartyByCloudPlayer(cloudPlayer);
+
+        if (simpleParty == null) {
+            cloudPlayer.playerExecutor().sendChatMessage(Component.text("Du bist in keiner Party oder deine Party wurde nicht gefunden"));
+            return;
+        }
+
+        Component leader = Component.text("Leader: " + this.getCloudPlayerById(simpleParty.partyLeader()).name());
+        Component list = Component.empty();
+        for (UUID partyMember : simpleParty.partyMembers()) {
+            if (partyMember == simpleParty.partyLeader()) {
+                continue;
+            }
+
+            list = list.append(Component.text(this.getCloudPlayerById(partyMember).name() + ", "));
+        }
+
+
+        cloudPlayer.playerExecutor().sendChatMessage(leader);
+        cloudPlayer.playerExecutor().sendChatMessage(list);
     }
 }

@@ -34,6 +34,8 @@ public class ChannelMessageReceiveListener {
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_KICK_MESSAGE);
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CLOSE_MESSAGE)) {
                 this.partyModule.getPartyManager().closeParty(event.content());
+            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LIST_MESSAGE)) {
+                this.partyModule.getPartyManager().sendPartyListMessage(event.content());
             } else if(event.message().equalsIgnoreCase("delete")) {
                 this.partyModule.getPartyManager().delete(event.content());
             }

@@ -35,6 +35,10 @@ public class VelocityParty {
                 new PartyCommand(this));
     }
 
+    public ProxyServer proxyServer() {
+        return proxyServer;
+    }
+
     public PlayerManager playerManager() {
         return playerManager;
     }

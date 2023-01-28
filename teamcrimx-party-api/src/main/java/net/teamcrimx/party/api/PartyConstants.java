@@ -11,6 +11,7 @@ public class PartyConstants {
     public static final String PARTY_KICK_MESSAGE = "party:kick";
     public static final String PARTY_CLOSE_MESSAGE = "party:close";
     public static final String PARTY_PROMOTE_MESSAGE = "party:promote";
+    public static final String PARTY_LIST_MESSAGE = "party:list";
 
     public static final String HAS_PARTY_DOCUMENT_PROPERTY = "hasParty";
     public static final String PARTY_UUID_DOCUMENT_PROPERTY = "partyId";
