@@ -1,10 +1,9 @@
 package net.teamcrimx.party.cloud.listener.player;
 
 import eu.cloudnetservice.driver.event.EventListener;
-import eu.cloudnetservice.driver.service.ServiceEnvironmentType;
 import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerServerSwitchEvent;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
-import net.teamcrimx.party.api.SimpleParty;
+import net.teamcrimx.party.api.party.SimpleParty;
 import net.teamcrimx.party.cloud.PartyModule;
 
 import java.util.Objects;

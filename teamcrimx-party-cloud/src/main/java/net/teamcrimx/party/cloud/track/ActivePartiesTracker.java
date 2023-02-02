@@ -1,6 +1,6 @@
 package net.teamcrimx.party.cloud.track;
 
-import net.teamcrimx.party.api.SimpleParty;
+import net.teamcrimx.party.api.party.SimpleParty;
 import net.teamcrimx.party.cloud.PartyModule;
 
 import java.util.HashMap;

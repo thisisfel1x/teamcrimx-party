@@ -5,9 +5,9 @@ import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.teamcrimx.party.api.ChatConstants;
-import net.teamcrimx.party.api.PartyConstants;
-import net.teamcrimx.party.api.SimpleParty;
+import net.teamcrimx.party.api.constants.ChatConstants;
+import net.teamcrimx.party.api.party.PartyConstants;
+import net.teamcrimx.party.api.party.SimpleParty;
 import net.teamcrimx.party.cloud.PartyModule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -442,12 +442,11 @@ public class PartyManager {
             if(partyMembers.size() == 0) {
                 members = this.partyPrefix.append(Component.text("Deine Party ist leer"));
             } else {
-                List<String> partyMemberNames = partyMembers.stream().map(uuid -> this.getCloudPlayerById(uuid).name()).toList();
+                List<String> partyMemberNames = partyMembers.stream().map(uuid -> this.getCloudPlayerById(uuid).name()).toList(); // TODO: null safety
                 members = this.partyPrefix.append(Component.text("Mitglieder: " + String.join(", ", partyMemberNames)));
             }
         }
 
-        cloudPlayer.playerExecutor().sendChatMessage(leader);
-        cloudPlayer.playerExecutor().sendChatMessage(members);
+        cloudPlayer.playerExecutor().sendChatMessage(leader.append(Component.newline().append(members)));
     }
 }
