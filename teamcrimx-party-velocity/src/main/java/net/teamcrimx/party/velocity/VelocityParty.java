@@ -8,6 +8,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import eu.cloudnetservice.driver.CloudNetDriver;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
+import net.teamcrimx.party.velocity.commands.PartyChatCommand;
 import net.teamcrimx.party.velocity.commands.PartyCommand;
 import org.slf4j.Logger;
 
@@ -33,6 +34,8 @@ public class VelocityParty {
 
         commandManager.register(commandManager.metaBuilder("party").plugin(this).build(),
                 new PartyCommand(this));
+        commandManager.register(commandManager.metaBuilder("p").plugin(this).build(),
+                new PartyChatCommand(this));
     }
 
     public ProxyServer proxyServer() {

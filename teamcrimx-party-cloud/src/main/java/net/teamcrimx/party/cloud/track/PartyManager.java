@@ -449,4 +449,39 @@ public class PartyManager {
 
         cloudPlayer.playerExecutor().sendChatMessage(leader.append(Component.newline().append(members)));
     }
+
+    public void chat(DataBuf content) {
+        UUID senderId = content.readUniqueId();
+        String message = content.readString();
+
+        CloudPlayer cloudPlayer = this.getCloudPlayerById(senderId);
+        if(cloudPlayer == null) {
+            return;
+        }
+
+        if(!this.isInParty(cloudPlayer)) {
+            cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
+                    .append(Component.text("Du bist in keiner Party oder deine Party wurde nicht gefunden")));
+            return;
+        }
+
+        // Try to send every player a message
+        SimpleParty simpleParty = this.getPartyByCloudPlayer(cloudPlayer);
+        if(simpleParty == null) {
+            return; // sollte eigentlich nicht passieren, siehe check oben
+        }
+
+        for (UUID partyMember : simpleParty.partyMembers()) {
+            CloudPlayer partyMemberPlayer = this.getCloudPlayerById(partyMember);
+            if(partyMemberPlayer == null) {
+                continue;
+            }
+
+            partyMemberPlayer.playerExecutor().sendChatMessage(this.partyPrefix
+                    .append(Component.text(partyMemberPlayer.name(), NamedTextColor.WHITE))
+                    .append(Component.text(" >  "))
+                    .append(Component.text(message, NamedTextColor.GRAY)));
+        }
+
+    }
 }

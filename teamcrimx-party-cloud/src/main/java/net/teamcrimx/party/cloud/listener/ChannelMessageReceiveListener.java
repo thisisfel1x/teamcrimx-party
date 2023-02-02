@@ -36,8 +36,10 @@ public class ChannelMessageReceiveListener {
                 this.partyModule.getPartyManager().closeParty(event.content());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LIST_MESSAGE)) {
                 this.partyModule.getPartyManager().sendPartyListMessage(event.content());
-            } else if(event.message().equalsIgnoreCase("delete")) {
+            } else if(event.message().equalsIgnoreCase("delete")) { // TODO: DEVELOPMENT ONLY
                 this.partyModule.getPartyManager().delete(event.content());
+            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CHAT_MESSAGE)) {
+                this.partyModule.getPartyManager().chat(event.content());
             }
         }
     }
