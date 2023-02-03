@@ -19,7 +19,8 @@ public class PartyManager {
 
     private final PartyModule partyModule;
 
-    private final Component partyPrefix = ChatConstants.partyPrefix;
+    private final Component partyPrefix = Component.text("", NamedTextColor.GRAY)
+            .append(ChatConstants.partyPrefix); // wtf
 
     public PartyManager(PartyModule partyModule) {
         this.partyModule = partyModule;
@@ -115,7 +116,7 @@ public class PartyManager {
 
     }
 
-    private void invite(CloudPlayer cloudPlayerToInvite, UUID senderId) {
+    private void invite(@NotNull CloudPlayer cloudPlayerToInvite, @Nullable UUID senderId) {
         // Step 1: basic checks
         CloudPlayer sender = this.getCloudPlayerById(senderId);
         if(sender == null) {
@@ -178,7 +179,7 @@ public class PartyManager {
                 .append(Component.text("Der Spieler " + cloudPlayerToInvite.name() + " wurde erfolgreich eingeladen")));
     }
 
-    private void join(CloudPlayer cloudPlayerToJoin, UUID invitedPlayerId) {
+    private void join(@NotNull CloudPlayer cloudPlayerToJoin, @NotNull UUID invitedPlayerId) {
         CloudPlayer invitedCloudPlayer = this.getCloudPlayerById(invitedPlayerId);
         if (invitedCloudPlayer == null) {
             return;
@@ -234,7 +235,7 @@ public class PartyManager {
 
     }
 
-    public void leaveParty(DataBuf content) {
+    public void leaveParty(@NotNull DataBuf content) {
         UUID playerId = content.readUniqueId();
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
         if (cloudPlayer == null) {
@@ -246,11 +247,13 @@ public class PartyManager {
 
     public void removeFromPartyIfIn(@Nullable CloudPlayer cloudPlayer) {
         if(cloudPlayer == null) {
+            System.out.println(1);
             return;
         }
 
         SimpleParty simpleParty = this.getPartyByCloudPlayer(cloudPlayer);
         if (simpleParty == null || !this.isInParty(cloudPlayer)) {
+            System.out.println(2);
             cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
                     .append(Component.text("Du bist aktuell in keiner Party")));
             return; // TODO: kp
@@ -259,10 +262,12 @@ public class PartyManager {
         if (!simpleParty.partyMembers().contains(cloudPlayer.uniqueId())) {
             cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
                     .append(Component.text("Irgendwie ist ein interner Fehler aufgetreten. Sorry!")));
+            System.out.println(3);
             return;
         } // TODO: remove doc
 
         simpleParty.partyMembers().remove(cloudPlayer.uniqueId());
+        System.out.println(simpleParty.partyMembers().size());
 
         if (simpleParty.partyLeader() == cloudPlayer.uniqueId()) {
             if (simpleParty.partyMembers().size() > 0) {
@@ -278,8 +283,11 @@ public class PartyManager {
         cloudPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
         this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
 
-        cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
-                .append(Component.text("Du hast die Party velassen")));
+        try {
+            cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
+                    .append(Component.text("Du hast die Party velassen")));
+        } catch (Exception ignored) {
+        }
     }
 
     public void promotePlayer(@Nullable UUID playerToPromote, @Nullable UUID senderId) {
@@ -314,6 +322,7 @@ public class PartyManager {
             }
             newLeader = playerToPromote;
         } else {
+            System.out.println(1);
             newLeader = simpleParty.partyMembers().get(new Random().nextInt(simpleParty.partyMembers().size()));
         }
 
@@ -450,9 +459,11 @@ public class PartyManager {
         cloudPlayer.playerExecutor().sendChatMessage(leader.append(Component.newline().append(members)));
     }
 
-    public void chat(DataBuf content) {
+    public void chat(@NotNull DataBuf content) {
         UUID senderId = content.readUniqueId();
         String message = content.readString();
+
+        System.out.println(message);
 
         CloudPlayer cloudPlayer = this.getCloudPlayerById(senderId);
         if(cloudPlayer == null) {
@@ -478,9 +489,9 @@ public class PartyManager {
             }
 
             partyMemberPlayer.playerExecutor().sendChatMessage(this.partyPrefix
-                    .append(Component.text(partyMemberPlayer.name(), NamedTextColor.WHITE))
-                    .append(Component.text(" >  "))
-                    .append(Component.text(message, NamedTextColor.GRAY)));
+                    .append(Component.text(cloudPlayer.name(), NamedTextColor.GREEN))
+                    .append(Component.text(" > ", NamedTextColor.DARK_GRAY))
+                    .append(Component.text(message, NamedTextColor.WHITE)));
         }
 
     }

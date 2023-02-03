@@ -11,6 +11,9 @@ import net.kyori.adventure.text.Component;
 import net.teamcrimx.party.api.party.PartyConstants;
 import net.teamcrimx.party.velocity.VelocityParty;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class PartyChatCommand implements SimpleCommand {
 
     private final VelocityParty velocityParty;
@@ -36,11 +39,15 @@ public class PartyChatCommand implements SimpleCommand {
             return;
         }
 
+        List<String> args = Arrays.asList(invocation.arguments());
+
+        System.out.println(Arrays.toString(invocation.arguments()));
+        System.out.println(String.join(" ", invocation.arguments()));
+
         ChannelMessage.builder()
                 .channel(PartyConstants.PARTY_CHANNEL)
                 .message(PartyConstants.PARTY_CHAT_MESSAGE)
-                .buffer(DataBuf.empty().writeString(String.join(" ", invocation.arguments()))
-                        .writeUniqueId(player.getUniqueId()))
+                .buffer(DataBuf.empty().writeUniqueId(player.getUniqueId()).writeString(String.join(" ", invocation.arguments())))
                 .targetNodes()
                 .build().send();
 

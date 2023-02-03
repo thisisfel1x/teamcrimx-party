@@ -18,6 +18,7 @@ public class ProxyDisconnectListener {
         CloudPlayer cloudPlayer = event.cloudPlayer();
 
         // Partysystem: check and remove player if he is in an active party
+        System.out.println(cloudPlayer);
         this.partyModule.getPartyManager().removeFromPartyIfIn(cloudPlayer);
 
     }
