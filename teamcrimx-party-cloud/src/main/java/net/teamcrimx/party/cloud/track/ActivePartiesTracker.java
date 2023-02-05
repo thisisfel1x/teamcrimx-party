@@ -29,7 +29,7 @@ public class ActivePartiesTracker {
             if(System.currentTimeMillis() - simpleParty.creationDate() > (2 * 60 * 1000)) { // delete party after x seconds
                 for (UUID partyMember : simpleParty.partyMembers()) {
                     this.partyModule.getPartyManager()
-                            .removeFromPartyIfIn(this.partyModule.getPartyManager().getCloudPlayerById(partyMember));
+                            .removeFromPartyIfIn(partyMember);
                 }
                 // TODO: delete party
             }

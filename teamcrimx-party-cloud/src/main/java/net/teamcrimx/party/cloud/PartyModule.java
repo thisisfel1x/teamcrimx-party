@@ -29,9 +29,9 @@ public class PartyModule extends DriverModule {
         CloudNetDriver.instance().eventManager().registerListener(new ProxyDisconnectListener(this));
         CloudNetDriver.instance().eventManager().registerListener(new ServerSwitchListener(this));
 
-        this.scheduledExecutorService.scheduleAtFixedRate(() -> {
+        /*this.scheduledExecutorService.scheduleAtFixedRate(() -> {
             this.partiesTracker.checkActiveParties();
-        }, 30L, 30L, TimeUnit.SECONDS);
+        }, 30L, 30L, TimeUnit.SECONDS); */
     }
 
     @ModuleTask(event = ModuleLifeCycle.LOADED)

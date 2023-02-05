@@ -2,6 +2,7 @@ package net.teamcrimx.party.cloud.track;
 
 import eu.cloudnetservice.common.document.gson.JsonDocument;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
+import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -42,7 +43,15 @@ public class PartyManager {
         return getPartyByCloudPlayer(cloudPlayer);
     }
 
-    public @Nullable SimpleParty getPartyByCloudPlayer(CloudPlayer cloudPlayer) {
+    public @Nullable SimpleParty getPartyByOfflinePlayerId(UUID playerId) {
+        CloudOfflinePlayer cloudPlayer = this.partyModule.playerManager().offlinePlayer(playerId);
+        if (cloudPlayer == null) {
+            return null;
+        }
+        return getPartyByCloudPlayer(cloudPlayer);
+    }
+
+    public @Nullable SimpleParty getPartyByCloudPlayer(CloudOfflinePlayer cloudPlayer) {
         if (cloudPlayer.properties().contains(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)
                 && cloudPlayer.properties().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)) {
 
@@ -237,41 +246,41 @@ public class PartyManager {
 
     public void leaveParty(@NotNull DataBuf content) {
         UUID playerId = content.readUniqueId();
-        CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
-        if (cloudPlayer == null) {
-            return;
-        }
-
-        this.removeFromPartyIfIn(cloudPlayer);
+        this.removeFromPartyIfIn(playerId);
     }
 
-    public void removeFromPartyIfIn(@Nullable CloudPlayer cloudPlayer) {
-        if(cloudPlayer == null) {
-            System.out.println(1);
-            return;
-        }
+    public void removeFromPartyIfIn(@NotNull UUID playerId) {
+        CloudPlayer possibleOnlinePlayer = this.getCloudPlayerById(playerId); // might be null because he is offline
+        SimpleParty simpleParty = this.getPartyByOfflinePlayerId(playerId); // <--- FEHLER
 
-        SimpleParty simpleParty = this.getPartyByCloudPlayer(cloudPlayer);
-        if (simpleParty == null || !this.isInParty(cloudPlayer)) {
+        if (simpleParty == null) {
             System.out.println(2);
-            cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
-                    .append(Component.text("Du bist aktuell in keiner Party")));
+            if(possibleOnlinePlayer  != null) {
+                possibleOnlinePlayer.playerExecutor().sendChatMessage(this.partyPrefix
+                        .append(Component.text("Du bist aktuell in keiner Party")));
+            }
             return; // TODO: kp
         }
 
-        if (!simpleParty.partyMembers().contains(cloudPlayer.uniqueId())) {
-            cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
-                    .append(Component.text("Irgendwie ist ein interner Fehler aufgetreten. Sorry!")));
+        System.out.println("Aus der Party will er raus: " + simpleParty.toString());
+
+        if (!simpleParty.partyMembers().contains(playerId)) {
+            if(possibleOnlinePlayer != null) {
+                possibleOnlinePlayer.playerExecutor().sendChatMessage(this.partyPrefix
+                        .append(Component.text("Irgendwie ist ein interner Fehler aufgetreten. Sorry!")));
+            }
             System.out.println(3);
             return;
         } // TODO: remove doc
 
-        simpleParty.partyMembers().remove(cloudPlayer.uniqueId());
+        simpleParty.partyMembers().remove(playerId);
+        this.partyModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
         System.out.println(simpleParty.partyMembers().size());
 
-        if (simpleParty.partyLeader() == cloudPlayer.uniqueId()) {
+        if (playerId.toString().equalsIgnoreCase(simpleParty.partyLeader().toString())) {
             if (simpleParty.partyMembers().size() > 0) {
-                this.promotePlayer(null, cloudPlayer.uniqueId()); // promote random player because leader has disconnected
+                System.out.println(simpleParty);
+                this.promotePlayer(null, playerId); // promote random player because leader has disconnected
                 System.out.println(this.partyModule.getPartiesTracker().activeParties().get(simpleParty.partyId()).toString());
             } else {
                 this.partyModule.getPartiesTracker().activeParties().remove(simpleParty.partyId());
@@ -279,36 +288,44 @@ public class PartyManager {
             }
         }
 
-        cloudPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
-        cloudPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
-        this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
+        CloudOfflinePlayer cloudOfflinePlayer = this.partyModule.playerManager().offlinePlayer(playerId);
+        if(cloudOfflinePlayer == null) {
+            return;
+        }
 
-        try {
-            cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
+        cloudOfflinePlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
+        cloudOfflinePlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
+        this.partyModule.playerManager().updateOfflinePlayer(cloudOfflinePlayer);
+
+        if(possibleOnlinePlayer != null) {
+            possibleOnlinePlayer.playerExecutor().sendChatMessage(this.partyPrefix
                     .append(Component.text("Du hast die Party velassen")));
-        } catch (Exception ignored) {
         }
     }
 
-    public void promotePlayer(@Nullable UUID playerToPromote, @Nullable UUID senderId) {
-        SimpleParty simpleParty = this.getPartyByPlayerId(senderId);
-        CloudPlayer senderPlayer = this.getCloudPlayerById(senderId);
+    public void promotePlayer(@Nullable UUID playerToPromote, @NotNull UUID senderId) {
+        SimpleParty simpleParty = this.getPartyByOfflinePlayerId(senderId);
+        CloudPlayer possibleOnlyPlayer = this.getCloudPlayerById(senderId);
         // if playerToPromote is null, pick a random player (e.g. caused by leader disconnect)
-        if (simpleParty == null || senderPlayer == null) {
+        if (simpleParty == null) {
             return;
         }
 
         // perms check
-        if (!senderPlayer.uniqueId().toString().equalsIgnoreCase(simpleParty.partyLeader().toString())) {
-            senderPlayer.playerExecutor().sendChatMessage(this.partyPrefix
-                    .append(Component.text("Du bist kein Leader du Trottel")));
+        if (!senderId.toString().equalsIgnoreCase(simpleParty.partyLeader().toString())) {
+            if (possibleOnlyPlayer != null) {
+                possibleOnlyPlayer.playerExecutor().sendChatMessage(this.partyPrefix
+                        .append(Component.text("Du bist kein Leader du Trottel")));
+            }
             return; // TODO message
         }
 
         // leader kann sich nicht zum leader machen wtf
-        if (playerToPromote != null && senderPlayer.uniqueId().toString().equalsIgnoreCase(playerToPromote.toString())) {
-            senderPlayer.playerExecutor().sendChatMessage(this.partyPrefix
-                    .append(Component.text("Du kannst dich nicht selber zum Leader machen du Hirni")));
+        if (playerToPromote != null && senderId.toString().equalsIgnoreCase(playerToPromote.toString())) {
+            if (possibleOnlyPlayer != null) {
+                possibleOnlyPlayer.playerExecutor().sendChatMessage(this.partyPrefix
+                        .append(Component.text("Du kannst dich nicht selber zum Leader machen du Hirni")));
+            }
             return;
         }
 
