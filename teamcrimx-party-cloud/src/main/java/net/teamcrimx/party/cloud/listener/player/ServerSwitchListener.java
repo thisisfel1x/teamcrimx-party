@@ -3,6 +3,9 @@ package net.teamcrimx.party.cloud.listener.player;
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerServerSwitchEvent;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.teamcrimx.party.api.constants.ChatConstants;
 import net.teamcrimx.party.api.party.SimpleParty;
 import net.teamcrimx.party.cloud.PartyModule;
 
@@ -20,38 +23,48 @@ public class ServerSwitchListener {
     @EventListener
     public void on(BridgeProxyPlayerServerSwitchEvent event) {
         CloudPlayer cloudPlayer = event.cloudPlayer();
+        String targetServerName = event.target().serverName();
 
-        System.out.println(event.target().environment());
-
-        if(Objects.equals(event.target().taskName(), "Proxy") || Objects.equals(event.target().serverName(), "Node")) { // TODO: hardcoded
-            System.out.println("no");
+        if(!this.partyModule.getPartyManager().isInParty(cloudPlayer)) {
             return;
         }
 
-        if(!this.partyModule.getPartyManager().isInParty(cloudPlayer)) {
-            System.out.println("ab");
+        if(targetServerName.equalsIgnoreCase("Proxy")
+                || targetServerName.equalsIgnoreCase("Node")) {
             return;
         }
 
         SimpleParty simpleParty = this.partyModule.getPartyManager().getPartyByCloudPlayer(cloudPlayer);
-        if(simpleParty == null || !cloudPlayer.uniqueId().toString().equalsIgnoreCase(simpleParty.partyLeader().toString())) { // Perm check
-            System.out.println("cd");
+        if(simpleParty == null
+                || !this.partyModule.getPartyManager().compareUUID(cloudPlayer.uniqueId(), simpleParty.partyLeader())) { // Perm check
             return;
         }
 
         for (UUID partyMember : simpleParty.partyMembers()) {
-            if(partyMember == cloudPlayer.uniqueId()) {
-                System.out.println("ef");
+            if(cloudPlayer.uniqueId().toString().equalsIgnoreCase(partyMember.toString())) {
                 continue;
             }
-            try {
-                this.partyModule.getPartyManager().getCloudPlayerById(partyMember)
-                        .playerExecutor().connect(event.target().serverName()); // TODO: check if his server is ingame
-            } catch (NullPointerException ignored) {
-                // remove player from party
-                System.out.println(ignored.getMessage());
-                // TODO: send message that x players couldnt join
+
+            CloudPlayer partyMemberCloudReference = this.partyModule.playerManager().onlinePlayer(partyMember);
+            if(partyMemberCloudReference == null) {
+                return;
             }
+
+            if(partyMemberCloudReference.connectedService() == null) {
+                partyMemberCloudReference.playerExecutor().sendChatMessage(ChatConstants.partyPrefix.append(Component
+                        .text("Es ist ein Fehler aufgetreten, dich auf den Server deines Partyleaders zu senden", NamedTextColor.RED)));
+                continue;
+            }
+
+            if(partyMemberCloudReference.connectedService().serverName().equalsIgnoreCase(targetServerName)) {
+                continue;
+            }
+
+            partyMemberCloudReference.playerExecutor().connect(targetServerName);
+            partyMemberCloudReference.playerExecutor().sendChatMessage(ChatConstants.partyPrefix.append(Component
+                    .text("Deine Party betritt den Server "))
+                    .append(Component.text(targetServerName, NamedTextColor.GREEN)));
+
         }
     }
 

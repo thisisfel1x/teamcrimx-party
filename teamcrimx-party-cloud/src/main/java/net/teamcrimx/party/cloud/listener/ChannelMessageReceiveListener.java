@@ -25,7 +25,7 @@ public class ChannelMessageReceiveListener {
                 this.partyModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_JOIN_MESSAGE);
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LEAVE_MESSAGE)) {
-                this.partyModule.getPartyManager().leaveParty(event.content());
+                this.partyModule.getPartyManager().removeFromParty(event.content().readUniqueId());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_PROMOTE_MESSAGE)) {
                 this.partyModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_PROMOTE_MESSAGE);
@@ -33,11 +33,11 @@ public class ChannelMessageReceiveListener {
                 this.partyModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_KICK_MESSAGE);
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CLOSE_MESSAGE)) {
-                this.partyModule.getPartyManager().closeParty(event.content());
+                this.partyModule.getPartyManager().closeParty(event.content().readUniqueId());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LIST_MESSAGE)) {
                 this.partyModule.getPartyManager().sendPartyListMessage(event.content());
             } else if(event.message().equalsIgnoreCase("delete")) { // TODO: DEVELOPMENT ONLY
-                this.partyModule.getPartyManager().delete(event.content());
+                this.partyModule.getPartyManager().delete(event.content().readUniqueId());
             } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CHAT_MESSAGE)) {
                 this.partyModule.getPartyManager().chat(event.content());
             }

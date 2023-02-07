@@ -2,7 +2,7 @@ package net.teamcrimx.party.cloud.listener.player;
 
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerDisconnectEvent;
-import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
+import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerLoginEvent;
 import net.teamcrimx.party.cloud.PartyModule;
 
 public class ProxyDisconnectListener {
@@ -15,9 +15,12 @@ public class ProxyDisconnectListener {
 
     @EventListener
     public void on(BridgeProxyPlayerDisconnectEvent event) {
-        System.out.println("Disconnect > " + event.cloudPlayer().playerExecutor());
-        this.partyModule.getPartyManager().removeFromPartyIfIn(event.cloudPlayer().uniqueId());
+        this.partyModule.getPartyManager().removeFromParty(event.cloudPlayer().uniqueId());
+    }
 
+    @EventListener
+    public void on(BridgeProxyPlayerLoginEvent event) {
+        this.partyModule.getPartyManager().delete(event.cloudPlayer().uniqueId()); // temporary
     }
 
 }
