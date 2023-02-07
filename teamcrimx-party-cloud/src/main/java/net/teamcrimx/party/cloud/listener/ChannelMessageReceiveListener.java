@@ -15,30 +15,30 @@ public class ChannelMessageReceiveListener {
 
     @EventListener
     public void on(ChannelMessageReceiveEvent event) {
-        if(event.channel().equalsIgnoreCase(PartyConstants.PARTY_CHANNEL)) {
-            if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CREATION_MESSAGE)) {
+        if (event.channel().equalsIgnoreCase(PartyConstants.PARTY_CHANNEL)) {
+            if (event.message().equalsIgnoreCase(PartyConstants.PARTY_CREATION_MESSAGE)) {
                 this.partyModule.getPartyManager().createParty(event.content());
-            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_INVITE_MESSAGE)) {
+            } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_INVITE_MESSAGE)) {
                 this.partyModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_INVITE_MESSAGE);
-            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_JOIN_MESSAGE)) {
+            } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_JOIN_MESSAGE)) {
                 this.partyModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_JOIN_MESSAGE);
-            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LEAVE_MESSAGE)) {
+            } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_LEAVE_MESSAGE)) {
                 this.partyModule.getPartyManager().removeFromParty(event.content().readUniqueId());
-            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_PROMOTE_MESSAGE)) {
+            } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_PROMOTE_MESSAGE)) {
                 this.partyModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_PROMOTE_MESSAGE);
-            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_KICK_MESSAGE)) {
+            } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_KICK_MESSAGE)) {
                 this.partyModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_KICK_MESSAGE);
-            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CLOSE_MESSAGE)) {
+            } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_CLOSE_MESSAGE)) {
                 this.partyModule.getPartyManager().closeParty(event.content().readUniqueId());
-            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_LIST_MESSAGE)) {
+            } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_LIST_MESSAGE)) {
                 this.partyModule.getPartyManager().sendPartyListMessage(event.content());
-            } else if(event.message().equalsIgnoreCase("delete")) { // TODO: DEVELOPMENT ONLY
+            } else if (event.message().equalsIgnoreCase("delete")) { // TODO: DEVELOPMENT ONLY
                 this.partyModule.getPartyManager().delete(event.content().readUniqueId());
-            } else if(event.message().equalsIgnoreCase(PartyConstants.PARTY_CHAT_MESSAGE)) {
+            } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_CHAT_MESSAGE)) {
                 this.partyModule.getPartyManager().chat(event.content());
             }
         }

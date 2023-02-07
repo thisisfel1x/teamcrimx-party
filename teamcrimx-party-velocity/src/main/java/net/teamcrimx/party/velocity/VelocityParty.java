@@ -13,7 +13,7 @@ import net.teamcrimx.party.velocity.commands.PartyCommand;
 import org.slf4j.Logger;
 
 @Plugin(id = "teamcrimx-party", name = "teamcrimx-party", version = "ALPHA 1",
-        url = "teamcrimx.net", authors = { "fel1x" })
+        url = "teamcrimx.net", authors = {"fel1x"})
 public class VelocityParty {
 
     private final ProxyServer proxyServer;

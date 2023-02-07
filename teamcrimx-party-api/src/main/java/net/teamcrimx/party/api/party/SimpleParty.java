@@ -6,9 +6,9 @@ import java.util.UUID;
 public class SimpleParty {
 
     private final UUID partyId;
-    private UUID partyLeader;
     private final List<UUID> partyMembers;
     private final long creationDate;
+    private UUID partyLeader;
 
     public SimpleParty(UUID partyId, UUID partyLeader, List<UUID> partyMembers, long creationDate) {
         this.partyId = partyId;

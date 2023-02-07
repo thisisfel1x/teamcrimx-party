@@ -7,7 +7,6 @@ import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
-import net.kyori.adventure.text.Component;
 import net.teamcrimx.party.api.party.PartyConstants;
 import net.teamcrimx.party.velocity.VelocityParty;
 
@@ -31,11 +30,11 @@ public class PartyChatCommand implements SimpleCommand {
         CloudPlayer cloudPlayer = CloudNetDriver.instance().serviceRegistry()
                 .firstProvider(PlayerManager.class).onlinePlayer(player.getUniqueId());
 
-        if(cloudPlayer == null) {
+        if (cloudPlayer == null) {
             return;
         }
 
-        if(invocation.arguments().length == 0) {
+        if (invocation.arguments().length == 0) {
             return;
         }
 

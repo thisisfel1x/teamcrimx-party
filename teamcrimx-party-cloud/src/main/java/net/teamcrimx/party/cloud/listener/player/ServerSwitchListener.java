@@ -9,7 +9,6 @@ import net.teamcrimx.party.api.constants.ChatConstants;
 import net.teamcrimx.party.api.party.SimpleParty;
 import net.teamcrimx.party.cloud.PartyModule;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class ServerSwitchListener {
@@ -25,44 +24,44 @@ public class ServerSwitchListener {
         CloudPlayer cloudPlayer = event.cloudPlayer();
         String targetServerName = event.target().serverName();
 
-        if(!this.partyModule.getPartyManager().isInParty(cloudPlayer)) {
+        if (!this.partyModule.getPartyManager().isInParty(cloudPlayer)) {
             return;
         }
 
-        if(targetServerName.equalsIgnoreCase("Proxy")
+        if (targetServerName.equalsIgnoreCase("Proxy")
                 || targetServerName.equalsIgnoreCase("Node")) {
             return;
         }
 
         SimpleParty simpleParty = this.partyModule.getPartyManager().getPartyByCloudPlayer(cloudPlayer);
-        if(simpleParty == null
+        if (simpleParty == null
                 || !this.partyModule.getPartyManager().compareUUID(cloudPlayer.uniqueId(), simpleParty.partyLeader())) { // Perm check
             return;
         }
 
         for (UUID partyMember : simpleParty.partyMembers()) {
-            if(cloudPlayer.uniqueId().toString().equalsIgnoreCase(partyMember.toString())) {
+            if (cloudPlayer.uniqueId().toString().equalsIgnoreCase(partyMember.toString())) {
                 continue;
             }
 
             CloudPlayer partyMemberCloudReference = this.partyModule.playerManager().onlinePlayer(partyMember);
-            if(partyMemberCloudReference == null) {
+            if (partyMemberCloudReference == null) {
                 return;
             }
 
-            if(partyMemberCloudReference.connectedService() == null) {
+            if (partyMemberCloudReference.connectedService() == null) {
                 partyMemberCloudReference.playerExecutor().sendChatMessage(ChatConstants.partyPrefix.append(Component
                         .text("Es ist ein Fehler aufgetreten, dich auf den Server deines Partyleaders zu senden", NamedTextColor.RED)));
                 continue;
             }
 
-            if(partyMemberCloudReference.connectedService().serverName().equalsIgnoreCase(targetServerName)) {
+            if (partyMemberCloudReference.connectedService().serverName().equalsIgnoreCase(targetServerName)) {
                 continue;
             }
 
             partyMemberCloudReference.playerExecutor().connect(targetServerName);
             partyMemberCloudReference.playerExecutor().sendChatMessage(ChatConstants.partyPrefix.append(Component
-                    .text("Deine Party betritt den Server "))
+                            .text("Deine Party betritt den Server "))
                     .append(Component.text(targetServerName, NamedTextColor.GREEN)));
 
         }

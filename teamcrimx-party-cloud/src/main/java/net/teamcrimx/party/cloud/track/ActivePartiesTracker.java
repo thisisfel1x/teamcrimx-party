@@ -23,10 +23,10 @@ public class ActivePartiesTracker {
 
     public void checkActiveParties() {
         for (SimpleParty simpleParty : this.activeParties.values()) {
-            if(simpleParty.partyMembers().size() > 1) {
+            if (simpleParty.partyMembers().size() > 1) {
                 continue;
             }
-            if(System.currentTimeMillis() - simpleParty.creationDate() > (2 * 60 * 1000)) { // delete party after x seconds
+            if (System.currentTimeMillis() - simpleParty.creationDate() > (2 * 60 * 1000)) { // delete party after x seconds
                 for (UUID partyMember : simpleParty.partyMembers()) {
                     this.partyModule.getPartyManager()
                             .removeFromParty(partyMember);

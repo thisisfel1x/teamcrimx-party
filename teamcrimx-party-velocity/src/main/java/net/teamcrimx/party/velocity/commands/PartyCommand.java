@@ -32,16 +32,16 @@ public class PartyCommand implements SimpleCommand {
         CloudPlayer cloudPlayer = CloudNetDriver.instance().serviceRegistry()
                 .firstProvider(PlayerManager.class).onlinePlayer(player.getUniqueId());
 
-        if(cloudPlayer == null) {
+        if (cloudPlayer == null) {
             return;
         }
 
-        if(invocation.arguments().length == 0) {
+        if (invocation.arguments().length == 0) {
             player.sendMessage(Component.text("Zu wenig Argumente"));
             return;
         }
 
-        if(invocation.arguments().length == 1) {
+        if (invocation.arguments().length == 1) {
             switch (invocation.arguments()[0].toLowerCase()) {
                 case "deleteproperties" -> {
                     this.sendChannelMessageToNode(PartyConstants.PARTY_CHANNEL, "delete",
@@ -59,13 +59,14 @@ public class PartyCommand implements SimpleCommand {
                     this.sendChannelMessageToNode(PartyConstants.PARTY_CHANNEL, PartyConstants.PARTY_LIST_MESSAGE,
                             DataBuf.empty().writeUniqueId(player.getUniqueId()));
                 }
-                case "promote", "kick", "invite", "accept" -> player.sendMessage(Component.text("bitte gebe einen spielernamen an!"));
+                case "promote", "kick", "invite", "accept" ->
+                        player.sendMessage(Component.text("bitte gebe einen spielernamen an!"));
                 case "close" -> {
                     this.sendChannelMessageToNode(PartyConstants.PARTY_CHANNEL, PartyConstants.PARTY_CLOSE_MESSAGE,
                             DataBuf.empty().writeUniqueId(player.getUniqueId()));
                 }
             }
-        } else if(invocation.arguments().length == 2) {
+        } else if (invocation.arguments().length == 2) {
             switch (invocation.arguments()[0].toLowerCase()) { // switch first argument for sub-arg-check
                 case "promote" -> {
                     String playerNameToPromote = invocation.arguments()[1]; // not valid yet TODO: validation check - cloud side done

@@ -13,15 +13,13 @@ import net.teamcrimx.party.cloud.track.PartyManager;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class PartyModule extends DriverModule {
 
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     private ActivePartiesTracker partiesTracker;
     private PartyManager partyManager;
-
     private PlayerManager playerManager;
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 
     @ModuleTask(event = ModuleLifeCycle.STARTED)
     private void onStart() { // Module successfully started
