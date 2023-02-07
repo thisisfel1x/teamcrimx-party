@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.teamcrimx</groupId>
-    <artifactId>teamcrimx-party</artifactId>
+    <artifactId>teamcrimx-party-and-friends</artifactId>
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
