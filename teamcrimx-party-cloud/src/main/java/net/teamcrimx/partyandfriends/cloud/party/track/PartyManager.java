@@ -1,4 +1,4 @@
-package net.teamcrimx.party.cloud.track;
+package net.teamcrimx.partyandfriends.cloud.party.track;
 
 import eu.cloudnetservice.common.document.gson.JsonDocument;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
@@ -6,10 +6,10 @@ import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.teamcrimx.party.api.constants.ChatConstants;
-import net.teamcrimx.party.api.party.PartyConstants;
-import net.teamcrimx.party.api.party.SimpleParty;
-import net.teamcrimx.party.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.api.constants.ChatConstants;
+import net.teamcrimx.partyandfriends.api.party.PartyConstants;
+import net.teamcrimx.partyandfriends.api.party.SimpleParty;
+import net.teamcrimx.partyandfriends.cloud.PartyModule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,6 +87,10 @@ public class PartyManager {
         CloudPlayer cloudPlayer = this.partyModule.playerManager().firstOnlinePlayer(playerName);
 
         if (cloudPlayer == null) {
+            // Send command sender error message
+            this.tryToSendMessageToPlayer(content.readUniqueId(),
+                    Component.text("Der angebene Spielername wurde nicht gefunden oder war noch nie online",
+                            NamedTextColor.RED));
             return;
         }
 
@@ -120,7 +124,7 @@ public class PartyManager {
         UUID playerId = content.readUniqueId();
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
         if (cloudPlayer == null) {
-            return; // TODO: Fehler bitte asap beheben
+            return;
         }
 
         if (this.isInParty(cloudPlayer)) {
@@ -140,12 +144,10 @@ public class PartyManager {
 
         SimpleParty simpleParty = new SimpleParty(partyId, playerId, partyPlayers, System.currentTimeMillis());
 
-        System.out.println(simpleParty);
-
         this.partyModule.getPartiesTracker().activeParties().put(partyId, simpleParty);
         cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
                 .append(Component.text("Deine Party wurde erstellt")));
-        cloudPlayer.playerExecutor().sendChatMessage(Component.text("DEBUG: partyId - " + simpleParty.partyId()));
+        //cloudPlayer.playerExecutor().sendChatMessage(Component.text("DEBUG: partyId - " + simpleParty.partyId()));
 
     }
 
@@ -277,6 +279,8 @@ public class PartyManager {
 
         SimpleParty simpleParty = this.getPartyByOfflinePlayerId(playerId);
         if (simpleParty == null) {
+            this.tryToSendMessageToPlayer(playerId, Component.text("Du befindest dich in keiner Party",
+                    NamedTextColor.RED));
             return;
         }
 
@@ -472,8 +476,6 @@ public class PartyManager {
     public void chat(@NotNull DataBuf content) {
         UUID senderId = content.readUniqueId();
         String message = content.readString();
-
-        System.out.println(message);
 
         CloudPlayer cloudPlayer = this.getCloudPlayerById(senderId);
         if (cloudPlayer == null) {

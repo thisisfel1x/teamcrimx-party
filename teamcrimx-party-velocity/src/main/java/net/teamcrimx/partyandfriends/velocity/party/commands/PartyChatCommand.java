@@ -1,4 +1,4 @@
-package net.teamcrimx.party.velocity.commands;
+package net.teamcrimx.partyandfriends.velocity.party.commands;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
@@ -7,8 +7,8 @@ import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
-import net.teamcrimx.party.api.party.PartyConstants;
-import net.teamcrimx.party.velocity.VelocityParty;
+import net.teamcrimx.partyandfriends.api.party.PartyConstants;
+import net.teamcrimx.partyandfriends.velocity.VelocityParty;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,11 +37,6 @@ public class PartyChatCommand implements SimpleCommand {
         if (invocation.arguments().length == 0) {
             return;
         }
-
-        List<String> args = Arrays.asList(invocation.arguments());
-
-        System.out.println(Arrays.toString(invocation.arguments()));
-        System.out.println(String.join(" ", invocation.arguments()));
 
         ChannelMessage.builder()
                 .channel(PartyConstants.PARTY_CHANNEL)

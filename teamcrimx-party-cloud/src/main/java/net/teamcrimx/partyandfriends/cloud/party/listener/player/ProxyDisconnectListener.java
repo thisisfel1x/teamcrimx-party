@@ -1,9 +1,9 @@
-package net.teamcrimx.party.cloud.listener.player;
+package net.teamcrimx.partyandfriends.cloud.party.listener.player;
 
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerDisconnectEvent;
 import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerLoginEvent;
-import net.teamcrimx.party.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.cloud.PartyModule;
 
 public class ProxyDisconnectListener {
 

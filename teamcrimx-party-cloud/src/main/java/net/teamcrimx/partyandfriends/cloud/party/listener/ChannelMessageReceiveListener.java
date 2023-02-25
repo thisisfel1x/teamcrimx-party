@@ -1,9 +1,9 @@
-package net.teamcrimx.party.cloud.listener;
+package net.teamcrimx.partyandfriends.cloud.party.listener;
 
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.driver.event.events.channel.ChannelMessageReceiveEvent;
-import net.teamcrimx.party.api.party.PartyConstants;
-import net.teamcrimx.party.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.api.party.PartyConstants;
+import net.teamcrimx.partyandfriends.cloud.PartyModule;
 
 public class ChannelMessageReceiveListener {
 

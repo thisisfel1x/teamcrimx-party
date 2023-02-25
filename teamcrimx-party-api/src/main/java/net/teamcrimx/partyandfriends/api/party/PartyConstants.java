@@ -1,4 +1,4 @@
-package net.teamcrimx.party.api.party;
+package net.teamcrimx.partyandfriends.api.party;
 
 public class PartyConstants {
 

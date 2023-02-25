@@ -1,15 +1,15 @@
-package net.teamcrimx.party.cloud;
+package net.teamcrimx.partyandfriends.cloud;
 
 import eu.cloudnetservice.driver.CloudNetDriver;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
-import net.teamcrimx.party.cloud.listener.ChannelMessageReceiveListener;
-import net.teamcrimx.party.cloud.listener.player.ProxyDisconnectListener;
-import net.teamcrimx.party.cloud.listener.player.ServerSwitchListener;
-import net.teamcrimx.party.cloud.track.ActivePartiesTracker;
-import net.teamcrimx.party.cloud.track.PartyManager;
+import net.teamcrimx.partyandfriends.cloud.party.listener.ChannelMessageReceiveListener;
+import net.teamcrimx.partyandfriends.cloud.party.listener.player.ProxyDisconnectListener;
+import net.teamcrimx.partyandfriends.cloud.party.listener.player.ServerSwitchListener;
+import net.teamcrimx.partyandfriends.cloud.party.track.ActivePartiesTracker;
+import net.teamcrimx.partyandfriends.cloud.party.track.PartyManager;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

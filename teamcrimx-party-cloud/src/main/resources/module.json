@@ -1,10 +1,10 @@
 {
-  "group": "net.teamcrimx.party.cloud",
-  "name": "teamcrimx-party",
+  "group": "net.teamcrimx.partyandfriends.cloud",
+  "name": "teamcrimx-party-and-friends",
   "version": "1.0",
   "author": "fel1x",
-  "main": "net.teamcrimx.party.cloud.PartyModule",
-  "description": "teamcrimx.net Party Module",
+  "main": "net.teamcrimx.partyandfriends.cloud.PartyModule",
+  "description": "teamcrimx.net Party and Friends Module",
   "website": "https://teamcrimx.net",
-  "dataFolder": "modules/teamcrimx-party"
+  "dataFolder": "modules/teamcrimx-partyandfriends"
 }

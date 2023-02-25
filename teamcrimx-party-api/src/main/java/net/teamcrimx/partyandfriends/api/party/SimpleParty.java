@@ -1,4 +1,4 @@
-package net.teamcrimx.party.api.party;
+package net.teamcrimx.partyandfriends.api.party;
 
 import java.util.List;
 import java.util.UUID;

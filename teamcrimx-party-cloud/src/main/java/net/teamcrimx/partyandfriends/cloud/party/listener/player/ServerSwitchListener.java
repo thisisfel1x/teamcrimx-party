@@ -1,13 +1,13 @@
-package net.teamcrimx.party.cloud.listener.player;
+package net.teamcrimx.partyandfriends.cloud.party.listener.player;
 
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerServerSwitchEvent;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.teamcrimx.party.api.constants.ChatConstants;
-import net.teamcrimx.party.api.party.SimpleParty;
-import net.teamcrimx.party.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.api.constants.ChatConstants;
+import net.teamcrimx.partyandfriends.api.party.SimpleParty;
+import net.teamcrimx.partyandfriends.cloud.PartyModule;
 
 import java.util.UUID;
 

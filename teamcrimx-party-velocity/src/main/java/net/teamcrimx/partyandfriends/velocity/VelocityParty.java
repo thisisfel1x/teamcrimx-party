@@ -1,4 +1,4 @@
-package net.teamcrimx.party.velocity;
+package net.teamcrimx.partyandfriends.velocity;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandManager;
@@ -8,8 +8,8 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import eu.cloudnetservice.driver.CloudNetDriver;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
-import net.teamcrimx.party.velocity.commands.PartyChatCommand;
-import net.teamcrimx.party.velocity.commands.PartyCommand;
+import net.teamcrimx.partyandfriends.velocity.party.commands.PartyChatCommand;
+import net.teamcrimx.partyandfriends.velocity.party.commands.PartyCommand;
 import org.slf4j.Logger;
 
 @Plugin(id = "teamcrimx-party", name = "teamcrimx-party", version = "ALPHA 1",

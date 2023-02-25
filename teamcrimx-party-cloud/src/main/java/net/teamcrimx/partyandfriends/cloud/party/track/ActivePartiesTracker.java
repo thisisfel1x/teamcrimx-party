@@ -1,7 +1,7 @@
-package net.teamcrimx.party.cloud.track;
+package net.teamcrimx.partyandfriends.cloud.party.track;
 
-import net.teamcrimx.party.api.party.SimpleParty;
-import net.teamcrimx.party.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.api.party.SimpleParty;
+import net.teamcrimx.partyandfriends.cloud.PartyModule;
 
 import java.util.HashMap;
 import java.util.Map;
