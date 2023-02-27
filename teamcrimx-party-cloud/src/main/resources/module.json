@@ -3,7 +3,7 @@
   "name": "teamcrimx-party-and-friends",
   "version": "1.0",
   "author": "fel1x",
-  "main": "net.teamcrimx.partyandfriends.cloud.PartyModule",
+  "main": "net.teamcrimx.partyandfriends.cloud.PartyAndFriendsModule",
   "description": "teamcrimx.net Party and Friends Module",
   "website": "https://teamcrimx.net",
   "dataFolder": "modules/teamcrimx-partyandfriends"

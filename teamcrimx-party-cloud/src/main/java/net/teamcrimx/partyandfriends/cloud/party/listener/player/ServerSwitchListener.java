@@ -7,16 +7,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.teamcrimx.partyandfriends.api.constants.ChatConstants;
 import net.teamcrimx.partyandfriends.api.party.SimpleParty;
-import net.teamcrimx.partyandfriends.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.cloud.PartyAndFriendsModule;
 
 import java.util.UUID;
 
 public class ServerSwitchListener {
 
-    private final PartyModule partyModule;
+    private final PartyAndFriendsModule partyAndFriendsModule;
 
-    public ServerSwitchListener(PartyModule partyModule) {
-        this.partyModule = partyModule;
+    public ServerSwitchListener(PartyAndFriendsModule partyAndFriendsModule) {
+        this.partyAndFriendsModule = partyAndFriendsModule;
     }
 
     @EventListener
@@ -24,7 +24,7 @@ public class ServerSwitchListener {
         CloudPlayer cloudPlayer = event.cloudPlayer();
         String targetServerName = event.target().serverName();
 
-        if (!this.partyModule.getPartyManager().isInParty(cloudPlayer)) {
+        if (!this.partyAndFriendsModule.getPartyManager().isInParty(cloudPlayer)) {
             return;
         }
 
@@ -33,9 +33,9 @@ public class ServerSwitchListener {
             return;
         }
 
-        SimpleParty simpleParty = this.partyModule.getPartyManager().getPartyByCloudPlayer(cloudPlayer);
+        SimpleParty simpleParty = this.partyAndFriendsModule.getPartyManager().getPartyByCloudPlayer(cloudPlayer);
         if (simpleParty == null
-                || !this.partyModule.getPartyManager().compareUUID(cloudPlayer.uniqueId(), simpleParty.partyLeader())) { // Perm check
+                || !this.partyAndFriendsModule.getPartyManager().compareUUID(cloudPlayer.uniqueId(), simpleParty.partyLeader())) { // Perm check
             return;
         }
 
@@ -44,7 +44,7 @@ public class ServerSwitchListener {
                 continue;
             }
 
-            CloudPlayer partyMemberCloudReference = this.partyModule.playerManager().onlinePlayer(partyMember);
+            CloudPlayer partyMemberCloudReference = this.partyAndFriendsModule.playerManager().onlinePlayer(partyMember);
             if (partyMemberCloudReference == null) {
                 return;
             }

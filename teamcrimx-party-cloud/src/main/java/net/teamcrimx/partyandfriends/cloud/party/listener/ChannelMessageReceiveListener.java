@@ -3,43 +3,43 @@ package net.teamcrimx.partyandfriends.cloud.party.listener;
 import eu.cloudnetservice.driver.event.EventListener;
 import eu.cloudnetservice.driver.event.events.channel.ChannelMessageReceiveEvent;
 import net.teamcrimx.partyandfriends.api.party.PartyConstants;
-import net.teamcrimx.partyandfriends.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.cloud.PartyAndFriendsModule;
 
 public class ChannelMessageReceiveListener {
 
-    private final PartyModule partyModule;
+    private final PartyAndFriendsModule partyAndFriendsModule;
 
-    public ChannelMessageReceiveListener(PartyModule partyModule) {
-        this.partyModule = partyModule;
+    public ChannelMessageReceiveListener(PartyAndFriendsModule partyAndFriendsModule) {
+        this.partyAndFriendsModule = partyAndFriendsModule;
     }
 
     @EventListener
     public void on(ChannelMessageReceiveEvent event) {
         if (event.channel().equalsIgnoreCase(PartyConstants.PARTY_CHANNEL)) {
             if (event.message().equalsIgnoreCase(PartyConstants.PARTY_CREATION_MESSAGE)) {
-                this.partyModule.getPartyManager().createParty(event.content());
+                this.partyAndFriendsModule.getPartyManager().createParty(event.content());
             } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_INVITE_MESSAGE)) {
-                this.partyModule.getPartyManager()
+                this.partyAndFriendsModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_INVITE_MESSAGE);
             } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_JOIN_MESSAGE)) {
-                this.partyModule.getPartyManager()
+                this.partyAndFriendsModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_JOIN_MESSAGE);
             } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_LEAVE_MESSAGE)) {
-                this.partyModule.getPartyManager().removeFromParty(event.content().readUniqueId());
+                this.partyAndFriendsModule.getPartyManager().removeFromParty(event.content().readUniqueId());
             } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_PROMOTE_MESSAGE)) {
-                this.partyModule.getPartyManager()
+                this.partyAndFriendsModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_PROMOTE_MESSAGE);
             } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_KICK_MESSAGE)) {
-                this.partyModule.getPartyManager()
+                this.partyAndFriendsModule.getPartyManager()
                         .parsePlayerNameAndExecute(event.content(), PartyConstants.PARTY_KICK_MESSAGE);
             } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_CLOSE_MESSAGE)) {
-                this.partyModule.getPartyManager().closeParty(event.content().readUniqueId());
+                this.partyAndFriendsModule.getPartyManager().closeParty(event.content().readUniqueId());
             } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_LIST_MESSAGE)) {
-                this.partyModule.getPartyManager().sendPartyListMessage(event.content());
+                this.partyAndFriendsModule.getPartyManager().sendPartyListMessage(event.content());
             } else if (event.message().equalsIgnoreCase("delete")) { // TODO: DEVELOPMENT ONLY
-                this.partyModule.getPartyManager().delete(event.content().readUniqueId());
+                this.partyAndFriendsModule.getPartyManager().delete(event.content().readUniqueId());
             } else if (event.message().equalsIgnoreCase(PartyConstants.PARTY_CHAT_MESSAGE)) {
-                this.partyModule.getPartyManager().chat(event.content());
+                this.partyAndFriendsModule.getPartyManager().chat(event.content());
             }
         }
     }

@@ -38,12 +38,7 @@ public class PartyChatCommand implements SimpleCommand {
             return;
         }
 
-        ChannelMessage.builder()
-                .channel(PartyConstants.PARTY_CHANNEL)
-                .message(PartyConstants.PARTY_CHAT_MESSAGE)
-                .buffer(DataBuf.empty().writeUniqueId(player.getUniqueId()).writeString(String.join(" ", invocation.arguments())))
-                .targetNodes()
-                .build().send();
-
+        this.velocityParty.sendChannelMessageToNode(PartyConstants.PARTY_CHANNEL, PartyConstants.PARTY_CHAT_MESSAGE,
+                DataBuf.empty().writeUniqueId(player.getUniqueId()).writeString(String.join(" ", invocation.arguments())));
     }
 }

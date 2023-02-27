@@ -1,7 +1,7 @@
-package net.teamcrimx.partyandfriends.cloud.party.track;
+package net.teamcrimx.partyandfriends.cloud.party.manager;
 
 import net.teamcrimx.partyandfriends.api.party.SimpleParty;
-import net.teamcrimx.partyandfriends.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.cloud.PartyAndFriendsModule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,11 +9,11 @@ import java.util.UUID;
 
 public class ActivePartiesTracker {
 
-    private final PartyModule partyModule;
+    private final PartyAndFriendsModule partyAndFriendsModule;
     private final Map<UUID, SimpleParty> activeParties;
 
-    public ActivePartiesTracker(PartyModule partyModule) {
-        this.partyModule = partyModule;
+    public ActivePartiesTracker(PartyAndFriendsModule partyAndFriendsModule) {
+        this.partyAndFriendsModule = partyAndFriendsModule;
         this.activeParties = new HashMap<>();
     }
 
@@ -28,7 +28,7 @@ public class ActivePartiesTracker {
             }
             if (System.currentTimeMillis() - simpleParty.creationDate() > (2 * 60 * 1000)) { // delete party after x seconds
                 for (UUID partyMember : simpleParty.partyMembers()) {
-                    this.partyModule.getPartyManager()
+                    this.partyAndFriendsModule.getPartyManager()
                             .removeFromParty(partyMember);
                 }
                 // TODO: delete party

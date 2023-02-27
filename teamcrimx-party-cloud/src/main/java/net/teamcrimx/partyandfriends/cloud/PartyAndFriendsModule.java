@@ -8,13 +8,13 @@ import eu.cloudnetservice.modules.bridge.player.PlayerManager;
 import net.teamcrimx.partyandfriends.cloud.party.listener.ChannelMessageReceiveListener;
 import net.teamcrimx.partyandfriends.cloud.party.listener.player.ProxyDisconnectListener;
 import net.teamcrimx.partyandfriends.cloud.party.listener.player.ServerSwitchListener;
-import net.teamcrimx.partyandfriends.cloud.party.track.ActivePartiesTracker;
-import net.teamcrimx.partyandfriends.cloud.party.track.PartyManager;
+import net.teamcrimx.partyandfriends.cloud.party.manager.ActivePartiesTracker;
+import net.teamcrimx.partyandfriends.cloud.party.manager.PartyManager;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-public class PartyModule extends DriverModule {
+public class PartyAndFriendsModule extends DriverModule {
 
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     private ActivePartiesTracker partiesTracker;

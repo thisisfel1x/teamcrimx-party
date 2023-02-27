@@ -1,4 +1,4 @@
-package net.teamcrimx.partyandfriends.cloud.party.track;
+package net.teamcrimx.partyandfriends.cloud.party.manager;
 
 import eu.cloudnetservice.common.document.gson.JsonDocument;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
@@ -9,7 +9,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.teamcrimx.partyandfriends.api.constants.ChatConstants;
 import net.teamcrimx.partyandfriends.api.party.PartyConstants;
 import net.teamcrimx.partyandfriends.api.party.SimpleParty;
-import net.teamcrimx.partyandfriends.cloud.PartyModule;
+import net.teamcrimx.partyandfriends.cloud.PartyAndFriendsModule;
+import net.teamcrimx.partyandfriends.cloud.SimpleManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,27 +20,22 @@ import java.util.Random;
 import java.util.UUID;
 
 // TODO: perm fix
-public class PartyManager {
+public class PartyManager extends SimpleManager {
 
-    private final PartyModule partyModule;
+    private final PartyAndFriendsModule partyAndFriendsModule;
 
     private final Component partyPrefix = Component.text("", NamedTextColor.GRAY)
             .append(ChatConstants.partyPrefix); // wtf
 
-    public PartyManager(PartyModule partyModule) {
-        this.partyModule = partyModule;
-    }
+    public PartyManager(PartyAndFriendsModule partyAndFriendsModule) {
+        super(partyAndFriendsModule);
+        this.partyAndFriendsModule = partyAndFriendsModule;
 
-    public @Nullable CloudPlayer getCloudPlayerById(UUID playerId) {
-        return this.partyModule.playerManager().onlinePlayer(playerId);
-    }
-
-    public @Nullable CloudOfflinePlayer getOfflineCloudPlayerById(UUID playerId) {
-        return this.partyModule.playerManager().offlinePlayer(playerId);
+        this.prefix(this.partyPrefix);
     }
 
     public @Nullable SimpleParty getPartyById(UUID partyId) { // großes problem: keine abfrage, ob der spieler aktuell admin ist oder nicht
-        return this.partyModule.getPartiesTracker().activeParties().get(partyId);
+        return this.partyAndFriendsModule.getPartiesTracker().activeParties().get(partyId);
     }
 
     public @Nullable SimpleParty getPartyByPlayerId(UUID playerId) {
@@ -51,7 +47,7 @@ public class PartyManager {
     }
 
     public @Nullable SimpleParty getPartyByOfflinePlayerId(UUID playerId) {
-        CloudOfflinePlayer cloudPlayer = this.partyModule.playerManager().offlinePlayer(playerId);
+        CloudOfflinePlayer cloudPlayer = this.partyAndFriendsModule.playerManager().offlinePlayer(playerId);
         if (cloudPlayer == null) {
             return null;
         }
@@ -84,7 +80,7 @@ public class PartyManager {
 
     public void parsePlayerNameAndExecute(DataBuf content, String partyConstant) {
         String playerName = content.readString();
-        CloudPlayer cloudPlayer = this.partyModule.playerManager().firstOnlinePlayer(playerName);
+        CloudPlayer cloudPlayer = this.partyAndFriendsModule.playerManager().firstOnlinePlayer(playerName);
 
         if (cloudPlayer == null) {
             // Send command sender error message
@@ -110,16 +106,6 @@ public class PartyManager {
         }
     }
 
-    public void tryToSendMessageToPlayer(UUID playerId, Component message) {
-        CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
-
-        if (cloudPlayer == null) {
-            return;
-        }
-
-        cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix.append(message));
-    }
-
     public void createParty(@NotNull DataBuf content) {
         UUID playerId = content.readUniqueId();
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
@@ -137,14 +123,14 @@ public class PartyManager {
 
         cloudPlayer.properties().append(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, true)
                 .append(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY, partyId);
-        this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
+        this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayer);
 
         List<UUID> partyPlayers = new ArrayList<>();
         partyPlayers.add(playerId);
 
         SimpleParty simpleParty = new SimpleParty(partyId, playerId, partyPlayers, System.currentTimeMillis());
 
-        this.partyModule.getPartiesTracker().activeParties().put(partyId, simpleParty);
+        this.partyAndFriendsModule.getPartiesTracker().activeParties().put(partyId, simpleParty);
         cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
                 .append(Component.text("Deine Party wurde erstellt")));
         //cloudPlayer.playerExecutor().sendChatMessage(Component.text("DEBUG: partyId - " + simpleParty.partyId()));
@@ -199,7 +185,7 @@ public class PartyManager {
         invites.append(simpleParty.partyId().toString(), System.currentTimeMillis() + (5 * 60 * 1000)); // expiration after 5 min
 
         cloudPlayerToInvite.properties().append(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY, invites);
-        this.partyModule.playerManager().updateOnlinePlayer(cloudPlayerToInvite);
+        this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayerToInvite);
 
         String senderName = "unknown";
         CloudPlayer cloudPlayer = this.getCloudPlayerById(senderId);
@@ -256,12 +242,12 @@ public class PartyManager {
 
         // add him
         simpleParty.partyMembers().add(invitedCloudPlayer.uniqueId());
-        this.partyModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
+        this.partyAndFriendsModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
 
         invitedCloudPlayer.properties().append(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, true)
                 .append(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY, simpleParty.partyId())
                 .remove(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
-        this.partyModule.playerManager().updateOnlinePlayer(invitedCloudPlayer);
+        this.partyAndFriendsModule.playerManager().updateOnlinePlayer(invitedCloudPlayer);
 
         invitedCloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix
                 .append(Component.text("Du bist der Party beigetreten")));
@@ -287,11 +273,11 @@ public class PartyManager {
         // Remove Document properties
         cloudOfflinePlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
         cloudOfflinePlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
-        this.partyModule.playerManager().updateOfflinePlayer(cloudOfflinePlayer);
+        this.partyAndFriendsModule.playerManager().updateOfflinePlayer(cloudOfflinePlayer);
 
         // Remove from object
         simpleParty.partyMembers().remove(playerId);
-        this.partyModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
+        this.partyAndFriendsModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
 
         // Check if player is leader. true: try to promote another player
         boolean isLeader = simpleParty.partyLeader().toString().equalsIgnoreCase(playerId.toString());
@@ -302,7 +288,7 @@ public class PartyManager {
                         promoteUUID, PromoteReason.FORCE);
             } else {
                 // delete party
-                this.partyModule.getPartiesTracker().activeParties().remove(simpleParty.partyId());
+                this.partyAndFriendsModule.getPartiesTracker().activeParties().remove(simpleParty.partyId());
             }
         }
 
@@ -334,7 +320,7 @@ public class PartyManager {
             return;
         }
 
-        this.partyModule.getPartiesTracker().activeParties().get(simpleParty.partyId()).partyLeader(playerToPromote); // workaround
+        this.partyAndFriendsModule.getPartiesTracker().activeParties().get(simpleParty.partyId()).partyLeader(playerToPromote); // workaround
 
         this.tryToSendMessageToPlayer(senderId, Component.text("Du bist nun kein Partyleader mehr"));
         this.tryToSendMessageToPlayer(playerToPromote, Component.text("Du bist nun Partyleader"));
@@ -369,11 +355,11 @@ public class PartyManager {
         // Remove Document properties
         cloudPlayerToKick.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
         cloudPlayerToKick.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
-        this.partyModule.playerManager().updateOnlinePlayer(cloudPlayerToKick);
+        this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayerToKick);
 
         // Remove from object
         simpleParty.partyMembers().remove(cloudPlayerToKick.uniqueId());
-        this.partyModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
+        this.partyAndFriendsModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
 
         cloudPlayerToKick.playerExecutor().sendChatMessage(this.partyPrefix
                 .append(Component.text("Du wurdest aus der Party gekickt")));
@@ -407,13 +393,13 @@ public class PartyManager {
 
             loopPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
             loopPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
-            this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
+            this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayer);
 
             loopPlayer.playerExecutor().sendChatMessage(this.partyPrefix.append(Component.text("Die Party wurde aufgelöst, du wurdest entfernt")));
         }
 
         // finally delete reference from map
-        this.partyModule.getPartiesTracker().activeParties().remove(simpleParty.partyId());
+        this.partyAndFriendsModule.getPartiesTracker().activeParties().remove(simpleParty.partyId());
 
         cloudPlayer.playerExecutor().sendChatMessage(this.partyPrefix.append(Component.text("Deine Party wurde aufgelöst")));
     }
@@ -427,7 +413,7 @@ public class PartyManager {
         cloudPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
         cloudPlayer.properties().remove(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
         cloudPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
-        this.partyModule.playerManager().updateOnlinePlayer(cloudPlayer);
+        this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayer);
     }
 
     public void sendPartyListMessage(@NotNull DataBuf content) {

@@ -98,12 +98,7 @@ public class PartyCommand implements SimpleCommand {
     }
 
     public void sendChannelMessageToNode(String channelName, String message, DataBuf dataBuf) {
-        ChannelMessage.builder()
-                .channel(channelName)
-                .message(message)
-                .buffer(dataBuf)
-                .targetNodes()
-                .build().send();
+        this.velocityParty.sendChannelMessageToNode(channelName, message, dataBuf);
     }
 
     @Override
