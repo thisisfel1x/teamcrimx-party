@@ -20,7 +20,7 @@ public class ProxyDisconnectListener {
 
     @EventListener
     public void on(BridgeProxyPlayerLoginEvent event) {
-        this.partyAndFriendsModule.getPartyManager().delete(event.cloudPlayer().uniqueId()); // temporary
+        this.partyAndFriendsModule.getPartyManager().delete(event.cloudPlayer().uniqueId()); // TODO temporary
     }
 
 }

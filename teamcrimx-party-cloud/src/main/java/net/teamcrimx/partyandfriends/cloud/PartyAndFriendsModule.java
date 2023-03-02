@@ -5,6 +5,10 @@ import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
+import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
+import net.teamcrimx.partyandfriends.cloud.friends.listener.ChannelFriendMessageReceiveListener;
+import net.teamcrimx.partyandfriends.cloud.friends.listener.player.ProxyConnectListener;
+import net.teamcrimx.partyandfriends.cloud.manager.FriendManager;
 import net.teamcrimx.partyandfriends.cloud.party.listener.ChannelMessageReceiveListener;
 import net.teamcrimx.partyandfriends.cloud.party.listener.player.ProxyDisconnectListener;
 import net.teamcrimx.partyandfriends.cloud.party.listener.player.ServerSwitchListener;
@@ -19,13 +23,20 @@ public class PartyAndFriendsModule extends DriverModule {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     private ActivePartiesTracker partiesTracker;
     private PartyManager partyManager;
+    private FriendManager friendManager;
     private PlayerManager playerManager;
 
     @ModuleTask(event = ModuleLifeCycle.STARTED)
     private void onStart() { // Module successfully started
+        // PARTY
         CloudNetDriver.instance().eventManager().registerListener(new ChannelMessageReceiveListener(this));
         CloudNetDriver.instance().eventManager().registerListener(new ProxyDisconnectListener(this));
         CloudNetDriver.instance().eventManager().registerListener(new ServerSwitchListener(this));
+
+        // FRIEND
+        CloudNetDriver.instance().eventManager().registerListener(new ChannelFriendMessageReceiveListener(this));
+        CloudNetDriver.instance().eventManager().registerListener(new ProxyConnectListener(this));
+
 
         /*this.scheduledExecutorService.scheduleAtFixedRate(() -> {
             this.partiesTracker.checkActiveParties();
@@ -37,8 +48,12 @@ public class PartyAndFriendsModule extends DriverModule {
         this.playerManager = CloudNetDriver.instance().serviceRegistry()
                 .firstProvider(PlayerManager.class);
 
+        MongoDatabaseImpl.initializeDatabase();
+
         this.partiesTracker = new ActivePartiesTracker(this);
         this.partyManager = new PartyManager(this);
+
+        this.friendManager = new FriendManager(this);
     }
 
     @ModuleTask(event = ModuleLifeCycle.STOPPED)
@@ -56,5 +71,9 @@ public class PartyAndFriendsModule extends DriverModule {
 
     public ActivePartiesTracker getPartiesTracker() {
         return partiesTracker;
+    }
+
+    public FriendManager friendManager() {
+        return friendManager;
     }
 }
