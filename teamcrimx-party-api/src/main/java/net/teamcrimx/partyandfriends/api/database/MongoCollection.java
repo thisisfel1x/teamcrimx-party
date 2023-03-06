@@ -1,20 +1,20 @@
 package net.teamcrimx.partyandfriends.api.database;
 
-public enum MongoCollections {
+public enum MongoCollection {
 
     // DATABASE
-    DATABASE("ntework"),
+    DATABASE("network"),
 
     // COLLECTIONS
     FRIENDS("friends");
 
     String collectionName;
 
-    MongoCollections(String collectionName) {
+    MongoCollection(String collectionName) {
         this.collectionName = collectionName;
     }
 
-    public String collecitonName() {
+    public String collectionName() {
         return collectionName;
     }
 }

@@ -6,6 +6,7 @@ import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
 import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
+import net.teamcrimx.partyandfriends.api.database.MongoMethodsUtil;
 import net.teamcrimx.partyandfriends.cloud.friends.listener.ChannelFriendMessageReceiveListener;
 import net.teamcrimx.partyandfriends.cloud.friends.listener.player.ProxyConnectListener;
 import net.teamcrimx.partyandfriends.cloud.manager.FriendManager;
@@ -25,6 +26,7 @@ public class PartyAndFriendsModule extends DriverModule {
     private PartyManager partyManager;
     private FriendManager friendManager;
     private PlayerManager playerManager;
+    private MongoMethodsUtil mongoMethods;
 
     @ModuleTask(event = ModuleLifeCycle.STARTED)
     private void onStart() { // Module successfully started
@@ -49,6 +51,7 @@ public class PartyAndFriendsModule extends DriverModule {
                 .firstProvider(PlayerManager.class);
 
         MongoDatabaseImpl.initializeDatabase();
+        this.mongoMethods = MongoDatabaseImpl.mongoMethodsUtil();
 
         this.partiesTracker = new ActivePartiesTracker(this);
         this.partyManager = new PartyManager(this);
@@ -75,5 +78,9 @@ public class PartyAndFriendsModule extends DriverModule {
 
     public FriendManager friendManager() {
         return friendManager;
+    }
+
+    public MongoMethodsUtil mongoMethods() {
+        return mongoMethods;
     }
 }
