@@ -25,6 +25,8 @@ public class ChannelFriendMessageReceiveListener {
         switch (event.message().toLowerCase()) {
             case FriendConstants.FRIEND_ADD_MESSAGE -> this.partyAndFriendsModule.friendManager()
                     .addFriend(content.readUniqueId(), content.readString());
+            case FriendConstants.FRIEND_ACCEPT_MESSAGE -> this.partyAndFriendsModule.friendManager()
+                    .acceptFriend(content.readUniqueId(), content.readString());
         }
 
     }

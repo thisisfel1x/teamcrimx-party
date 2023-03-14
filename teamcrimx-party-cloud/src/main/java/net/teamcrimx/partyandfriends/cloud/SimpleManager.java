@@ -25,6 +25,10 @@ public class SimpleManager {
         return this.partyAndFriendsModule.playerManager().offlinePlayer(playerId);
     }
 
+    public @Nullable CloudOfflinePlayer getOfflineCloudPlayerByName(String name) {
+        return this.partyAndFriendsModule.playerManager().firstOfflinePlayer(name);
+    }
+
     public void tryToSendMessageToPlayer(UUID playerId, Component message) {
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
 

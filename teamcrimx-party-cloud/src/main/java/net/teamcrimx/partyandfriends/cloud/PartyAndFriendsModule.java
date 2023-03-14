@@ -9,7 +9,8 @@ import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
 import net.teamcrimx.partyandfriends.api.database.MongoMethodsUtil;
 import net.teamcrimx.partyandfriends.cloud.friends.listener.ChannelFriendMessageReceiveListener;
 import net.teamcrimx.partyandfriends.cloud.friends.listener.player.ProxyConnectListener;
-import net.teamcrimx.partyandfriends.cloud.manager.FriendManager;
+import net.teamcrimx.partyandfriends.cloud.friends.manager.FriendHolder;
+import net.teamcrimx.partyandfriends.cloud.friends.manager.FriendManager;
 import net.teamcrimx.partyandfriends.cloud.party.listener.ChannelMessageReceiveListener;
 import net.teamcrimx.partyandfriends.cloud.party.listener.player.ProxyDisconnectListener;
 import net.teamcrimx.partyandfriends.cloud.party.listener.player.ServerSwitchListener;
@@ -22,9 +23,12 @@ import java.util.concurrent.ScheduledExecutorService;
 public class PartyAndFriendsModule extends DriverModule {
 
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
-    private ActivePartiesTracker partiesTracker;
     private PartyManager partyManager;
+    private ActivePartiesTracker partiesTracker;
+
     private FriendManager friendManager;
+    private FriendHolder friendHolder;
+
     private PlayerManager playerManager;
     private MongoMethodsUtil mongoMethods;
 
@@ -57,6 +61,7 @@ public class PartyAndFriendsModule extends DriverModule {
         this.partyManager = new PartyManager(this);
 
         this.friendManager = new FriendManager(this);
+        this.friendHolder = new FriendHolder();
     }
 
     @ModuleTask(event = ModuleLifeCycle.STOPPED)
@@ -82,5 +87,9 @@ public class PartyAndFriendsModule extends DriverModule {
 
     public MongoMethodsUtil mongoMethods() {
         return mongoMethods;
+    }
+
+    public FriendHolder friendHolder() {
+        return friendHolder;
     }
 }
