@@ -1,5 +1,8 @@
 package net.teamcrimx.partyandfriends.api.friends;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import net.kyori.adventure.util.TriState;
 import net.teamcrimx.partyandfriends.api.constants.CloudConstants;
 import net.teamcrimx.partyandfriends.api.database.MongoCollection;
 import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
@@ -8,19 +11,32 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class SimpleFriend {
 
     private final UUID uuid;
     private final ArrayList<UUID> friends;
-    private final ArrayList<UUID> onlineFriends;
+    private ArrayList<UUID> onlineFriends;
     private final ArrayList<UUID> friendRequests;
+    private LoadingCache<UUID, TriState> onlineFriendsCache;
 
     public SimpleFriend(UUID uuid, ArrayList<UUID> friends, ArrayList<UUID> onlineFriends, ArrayList<UUID> friendRequests) {
         this.uuid = uuid;
         this.friends = friends;
         this.onlineFriends = onlineFriends;
         this.friendRequests = friendRequests;
+
+        this.onlineFriendsCache = Caffeine.newBuilder()
+                .maximumSize(128)
+                .refreshAfterWrite(30, TimeUnit.SECONDS)
+                .build(k -> CloudConstants.playerManager.onlinePlayer(k) != null ? TriState.TRUE : TriState.FALSE);
+
+        for (UUID friend : this.friends) {
+            this.onlineFriendsCache.put(friend, TriState.NOT_SET);
+            this.onlineFriendsCache.refresh(friend);
+        }
     }
 
     public UUID uuid() {
@@ -59,4 +75,15 @@ public class SimpleFriend {
         });
     }
 
+    public void update(boolean database) {
+        this.onlineFriends = new ArrayList<>(friends.stream()
+                .filter(id -> CloudConstants.playerManager.onlinePlayer(id) == null)
+                .toList());
+
+        if(database) {
+            MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friends", this.friends, MongoCollection.FRIENDS);
+            MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friendRequests", this.friendRequests, MongoCollection.FRIENDS);
+        }
+
+    }
 }

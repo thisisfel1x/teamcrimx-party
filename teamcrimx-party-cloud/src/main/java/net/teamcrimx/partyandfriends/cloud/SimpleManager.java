@@ -36,7 +36,7 @@ public class SimpleManager {
             return;
         }
 
-        cloudPlayer.playerExecutor().sendChatMessage(this.prefix.append(message));
+        cloudPlayer.playerExecutor().sendChatMessage(Component.textOfChildren(this.prefix, message));
     }
 
     public void prefix(Component prefix) {

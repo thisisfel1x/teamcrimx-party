@@ -3,6 +3,7 @@ package net.teamcrimx.partyandfriends.cloud.friends.manager;
 import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.teamcrimx.partyandfriends.api.constants.ChatConstants;
 import net.teamcrimx.partyandfriends.api.database.MongoCollection;
@@ -30,6 +31,7 @@ public class FriendManager extends SimpleManager {
         this.prefix(friendPrefix);
     }
 
+    // TODO: overhaul
     public void checkForDatabaseAndInitializeFriends(UUID uniqueId) {
         if(!this.partyAndFriendsModule.mongoMethods().doesExists(uniqueId, MongoCollection.FRIENDS)) {
             this.createFriendDocument(uniqueId);
@@ -89,12 +91,18 @@ public class FriendManager extends SimpleManager {
             return;
         }
 
-        SimpleFriend simpleFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
-
         CloudOfflinePlayer cloudPlayerToAdd = this.getOfflineCloudPlayerByName(playerNameToAdd);
         if(cloudPlayerToAdd == null) {
             this.tryToSendMessageToPlayer(senderUUID,
                     Component.text("Dieser Spieler war noch nie online", NamedTextColor.RED));
+            return;
+        }
+
+        SimpleFriend simpleFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
+
+        if(simpleFriend.friends().contains(cloudPlayerToAdd.uniqueId())) {
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du bist bereits mit diesem Spieler befreundet",
+                    NamedTextColor.RED));
             return;
         }
 
@@ -134,10 +142,19 @@ public class FriendManager extends SimpleManager {
         this.tryToSendMessageToPlayer(senderUUID,
                 Component.text("Eine Freundschaftsanfrage wurde an " + cloudPlayerToAdd.name() + " versand",
                         NamedTextColor.GREEN));
-        tryToSendMessageToPlayer(cloudPlayerToAdd.uniqueId(),
+        /*tryToSendMessageToPlayer(cloudPlayerToAdd.uniqueId(),
                 Component.text("Du hast eine Freundschaftsanfrage von " + senderPlayer.name() + " erhalten",
                         NamedTextColor.GRAY));
+        */
+        Component a = Component.text("Du hast eine Freundschaftsanfrage von" + senderPlayer.name() + "erhalten. Klicke zum ", NamedTextColor.GRAY);
+        Component b = Component.text("ANNEHMEN", NamedTextColor.GREEN)
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/friend accept " + senderPlayer.name()));
+        Component c = Component.text("ABLEHNEN", NamedTextColor.RED)
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/friend deny " + senderPlayer.name()));
 
+
+        this.tryToSendMessageToPlayer(cloudPlayerToAdd.uniqueId(),
+                Component.textOfChildren(a, b, Component.text(" "), c));
     }
 
     public void acceptFriend(UUID senderUUID, String playerNameToAccept) {
@@ -149,6 +166,7 @@ public class FriendManager extends SimpleManager {
         if(senderPlayer == null) {
             return;
         }
+        SimpleFriend senderFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
 
         CloudOfflinePlayer playerToAccept = this.getOfflineCloudPlayerByName(playerNameToAccept);
         if(playerToAccept == null) {
@@ -156,37 +174,24 @@ public class FriendManager extends SimpleManager {
                     NamedTextColor.RED));
             return;
         }
-
-        List<String> friendRequests = this.partyAndFriendsModule.mongoMethods()
-                .getStringArrayListFromDocumentSync(senderPlayer.uniqueId(), MongoCollection.FRIENDS, "friendRequests");
-
-        if(friendRequests == null) {
-            return; // TODO : error
+        SimpleFriend friendToAccept = null;
+        try {
+            friendToAccept = SimpleFriend.getSimpleFriendByUUID(playerToAccept.uniqueId()).get();
+        } catch (InterruptedException | ExecutionException e) {
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Es ist ein Fehler aufgetreten",
+                    NamedTextColor.RED));
+            return;
         }
 
-        if(!friendRequests.contains(playerToAccept.toString())) {
+        if(!senderFriend.friendRequests().contains(playerToAccept.uniqueId())) {
             this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast von diesem Spieler keine Freundschaftsanfrage erhalten",
                     NamedTextColor.RED));
             return;
         }
 
-        friendRequests.remove(playerToAccept.toString());
-        this.partyAndFriendsModule.mongoMethods().insert(senderUUID, "friendRequests", friendRequests, MongoCollection.FRIENDS);
-
-        // other side
-        friendRequests = this.partyAndFriendsModule.mongoMethods()
-                .getStringArrayListFromDocumentSync(playerToAccept.uniqueId(), MongoCollection.FRIENDS, "friendRequests");
-
-        if(friendRequests == null) {
-            return; // TODO : error
-        }
-
-        if(friendRequests.contains(senderUUID.toString())) {
-            friendRequests.remove(senderPlayer.toString());
-        }
-
-        this.partyAndFriendsModule.mongoMethods().insert(senderPlayer.uniqueId(), "friendRequests", friendRequests,
-                MongoCollection.FRIENDS);
+        senderFriend.friendRequests().remove(playerToAccept.uniqueId());
+        senderFriend.friends().add(playerToAccept.uniqueId());
+        senderFriend.update(true);
 
     }
 }
