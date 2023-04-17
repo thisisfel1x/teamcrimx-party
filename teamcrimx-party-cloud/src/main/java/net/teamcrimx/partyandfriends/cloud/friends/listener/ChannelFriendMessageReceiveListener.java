@@ -26,7 +26,10 @@ public class ChannelFriendMessageReceiveListener {
             case FriendConstants.FRIEND_ADD_MESSAGE -> this.partyAndFriendsModule.friendManager()
                     .addFriend(content.readUniqueId(), content.readString());
             case FriendConstants.FRIEND_ACCEPT_MESSAGE -> this.partyAndFriendsModule.friendManager()
-                    .acceptFriend(content.readUniqueId(), content.readString());
+                    .denyOrAccept(content.readUniqueId(), content.readString(), FriendConstants.FRIEND_ACCEPT_MESSAGE);
+            case FriendConstants.FRIEND_DENY_MESSAGE ->  {
+                this.partyAndFriendsModule.friendManager().denyOrAccept(content.readUniqueId(), content.readString(), FriendConstants.FRIEND_DENY_MESSAGE);
+            }
         }
 
     }
