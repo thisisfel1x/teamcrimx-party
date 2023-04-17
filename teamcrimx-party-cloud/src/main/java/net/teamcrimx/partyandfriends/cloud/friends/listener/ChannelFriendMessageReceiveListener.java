@@ -26,10 +26,17 @@ public class ChannelFriendMessageReceiveListener {
             case FriendConstants.FRIEND_ADD_MESSAGE -> this.partyAndFriendsModule.friendManager()
                     .addFriend(content.readUniqueId(), content.readString());
             case FriendConstants.FRIEND_ACCEPT_MESSAGE -> this.partyAndFriendsModule.friendManager()
-                    .denyOrAccept(content.readUniqueId(), content.readString(), FriendConstants.FRIEND_ACCEPT_MESSAGE);
-            case FriendConstants.FRIEND_DENY_MESSAGE ->  {
-                this.partyAndFriendsModule.friendManager().denyOrAccept(content.readUniqueId(), content.readString(), FriendConstants.FRIEND_DENY_MESSAGE);
-            }
+                    .executeSingle(content.readUniqueId(), content.readString(), FriendConstants.FRIEND_ACCEPT_MESSAGE);
+            case FriendConstants.FRIEND_ACCEPT_ALL_MESSAGE -> this.partyAndFriendsModule.friendManager()
+                    .executeToAll(content.readUniqueId(), FriendConstants.FRIEND_ACCEPT_MESSAGE);
+            case FriendConstants.FRIEND_DENY_MESSAGE -> this.partyAndFriendsModule.friendManager()
+                    .executeSingle(content.readUniqueId(), content.readString(), FriendConstants.FRIEND_DENY_MESSAGE);
+            case FriendConstants.FRIEND_DENY_ALL_MESSAGE -> this.partyAndFriendsModule.friendManager()
+                    .executeToAll(content.readUniqueId(), FriendConstants.FRIEND_DENY_MESSAGE);
+            case FriendConstants.FRIEND_REMOVE_MESSAGE -> this.partyAndFriendsModule.friendManager()
+                    .executeSingle(content.readUniqueId(), content.readString(), FriendConstants.FRIEND_REMOVE_MESSAGE);
+            case FriendConstants.FRIEND_REMOVE_ALL_MESSAGE -> this.partyAndFriendsModule.friendManager()
+                    .executeToAll(content.readUniqueId(), FriendConstants.FRIEND_REMOVE_MESSAGE);
         }
 
     }

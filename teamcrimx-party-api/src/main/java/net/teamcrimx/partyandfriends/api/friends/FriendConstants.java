@@ -12,8 +12,8 @@ public class FriendConstants {
     public final static String FRIEND_REMOVE_MESSAGE = "friends:remove";
     public final static String FRIEND_REMOVE_ALL_MESSAGE = "friends:removeall";
     public final static String FRIEND_LIST_REQUESTS_MESSAGE = "friends:listrequests";
-    public final static String FRIEND_LIST_MESSAGE = "friends:list";
-    public final static String FRIEND_JUMP_MESSAGE = "friends:jump";
-    public final static String FRIEND_MSG_MESSAGE = "friends:msg";
+    public final static String FRIEND_LIST_MESSAGE = "friends:list"; // todo
+    public final static String FRIEND_JUMP_MESSAGE = "friends:jump"; // todo
+    public final static String FRIEND_MSG_MESSAGE = "friends:msg"; // todo
 
 }

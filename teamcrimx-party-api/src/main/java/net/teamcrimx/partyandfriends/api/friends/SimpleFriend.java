@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class SimpleFriend {
 
@@ -64,7 +65,7 @@ public class SimpleFriend {
             List<UUID> allFriends = friendDocument.getList("friends", String.class)
                     .stream().map(UUID::fromString).toList();
 
-            List<UUID> onlineFriends = allFriends.stream().filter(id -> CloudConstants.playerManager.onlinePlayer(id) == null)
+            List<UUID> onlineFriends = allFriends.stream().filter(id -> CloudConstants.playerManager.onlinePlayer(id) != null)
                     .toList();
 
             List<UUID> requests = friendDocument.getList("friendRequests", String.class)
@@ -80,8 +81,10 @@ public class SimpleFriend {
                 .toList());
 
         if(database) {
-            MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friends", this.friends, MongoCollection.FRIENDS);
-            MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friendRequests", this.friendRequests, MongoCollection.FRIENDS);
+            MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friends",
+                    this.friends.stream().map(UUID::toString).collect(Collectors.toList()), MongoCollection.FRIENDS);
+            MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friendRequests",
+                    this.friendRequests.stream().map(UUID::toString).collect(Collectors.toList()), MongoCollection.FRIENDS);
         }
 
     }

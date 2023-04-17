@@ -7,7 +7,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.teamcrimx.partyandfriends.api.constants.ChatConstants;
 import net.teamcrimx.partyandfriends.api.database.MongoCollection;
-import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
 import net.teamcrimx.partyandfriends.api.friends.FriendConstants;
 import net.teamcrimx.partyandfriends.api.friends.SimpleFriend;
 import net.teamcrimx.partyandfriends.cloud.PartyAndFriendsModule;
@@ -15,7 +14,7 @@ import net.teamcrimx.partyandfriends.cloud.SimpleManager;
 import org.bson.Document;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -55,7 +54,7 @@ public class FriendManager extends SimpleManager {
                 int onlineFriends = simpleFriend.onlineFriends().size();
                 String joinMessage = String.format("Aktuell sind %s Freunde online", onlineFriends);
                 if(onlineFriends == 0) {
-                    joinMessage = "Aktuell sind keine Freunde online";
+                    joinMessage = "Aktuell sind keine Freunde online " + simpleFriend.onlineFriends().size();
                 } else if (onlineFriends == 1) {
                     joinMessage = "Aktuell ist ein Freund online";
                 }
@@ -107,11 +106,13 @@ public class FriendManager extends SimpleManager {
             return;
         }
 
-        SimpleFriend simpleFriendToAdd = null;
-        try {
-            simpleFriendToAdd = SimpleFriend.getSimpleFriendByUUID(cloudPlayerToAdd.uniqueId()).get();
-        } catch (InterruptedException | ExecutionException ignored) {
-            // TODO: fehler
+        SimpleFriend simpleFriendToAdd = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(cloudPlayerToAdd.uniqueId());
+        if(simpleFriendToAdd == null) {
+            try {
+                simpleFriendToAdd = SimpleFriend.getSimpleFriendByUUID(cloudPlayerToAdd.uniqueId()).get();
+            } catch (InterruptedException | ExecutionException ignored) {
+                // TODO: fehler
+            }
         }
 
         if (simpleFriendToAdd == null) {
@@ -119,35 +120,24 @@ public class FriendManager extends SimpleManager {
             return;
         }
 
-        // add uuid to friend requests
-        List<String> friendRequests = this.partyAndFriendsModule.mongoMethods()
-                .getStringArrayListFromDocumentSync(cloudPlayerToAdd.uniqueId(), MongoCollection.FRIENDS, "friendRequests");
-
-        if(friendRequests == null) {
-            return; // TODO : error
-        }
-
-        if(friendRequests.contains(senderUUID.toString())) {
+        if(simpleFriendToAdd.friendRequests().contains(senderUUID)) {
             this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast diesem Spieler bereits eine " +
                     "Freundschaftsanfrage gesendet", NamedTextColor.RED));
             return;
         }
 
         // add senderuuid to list
-        friendRequests.add(senderUUID.toString());
-
-        // update object
-        this.partyAndFriendsModule.mongoMethods().insert(cloudPlayerToAdd.uniqueId(), "friendRequests", friendRequests,
-                MongoCollection.FRIENDS);
+        simpleFriendToAdd.friendRequests().add(senderUUID);
+        simpleFriendToAdd.update(true);
 
         this.tryToSendMessageToPlayer(senderUUID,
-                Component.text("Eine Freundschaftsanfrage wurde an " + cloudPlayerToAdd.name() + " versand",
+                Component.text("Eine Freundschaftsanfrage wurde an " + cloudPlayerToAdd.name() + " versandt",
                         NamedTextColor.GREEN));
         /*tryToSendMessageToPlayer(cloudPlayerToAdd.uniqueId(),
                 Component.text("Du hast eine Freundschaftsanfrage von " + senderPlayer.name() + " erhalten",
                         NamedTextColor.GRAY));
         */
-        Component a = Component.text("Du hast eine Freundschaftsanfrage von" + senderPlayer.name() + "erhalten. Klicke zum ", NamedTextColor.GRAY);
+        Component a = Component.text("Du hast eine Freundschaftsanfrage von" + senderPlayer.name() + " erhalten. Klicke zum ", NamedTextColor.GRAY);
         Component b = Component.text("ANNEHMEN", NamedTextColor.GREEN)
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/friend accept " + senderPlayer.name()));
         Component c = Component.text("ABLEHNEN", NamedTextColor.RED)
@@ -157,7 +147,7 @@ public class FriendManager extends SimpleManager {
                 Component.textOfChildren(a, b, Component.text(" "), c));
     }
 
-    public void denyOrAccept(UUID senderUUID, String playerName, String friendConstant) {
+    public void executeSingle(UUID senderUUID, String playerName, String friendConstant) {
         if(senderUUID == null || playerName == null) {
             return;
         }
@@ -168,53 +158,73 @@ public class FriendManager extends SimpleManager {
         }
         SimpleFriend senderFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
 
-        CloudOfflinePlayer playerToAccept = this.getOfflineCloudPlayerByName(playerName);
-        if(playerToAccept == null) {
+        CloudOfflinePlayer playerToInteract = this.getOfflineCloudPlayerByName(playerName);
+        if(playerToInteract == null) {
             this.tryToSendMessageToPlayer(senderUUID, Component.text("Es ist ein Fehler aufgetreten",
                     NamedTextColor.RED));
             return;
         }
-        SimpleFriend friendToAccept;
-        try {
-            friendToAccept = SimpleFriend.getSimpleFriendByUUID(playerToAccept.uniqueId()).get();
-        } catch (InterruptedException | ExecutionException e) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Es ist ein Fehler aufgetreten",
-                    NamedTextColor.RED));
-            return;
+        SimpleFriend friendToInteract = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(playerToInteract.uniqueId());
+        if(friendToInteract == null) {
+            try {
+                friendToInteract = SimpleFriend.getSimpleFriendByUUID(playerToInteract.uniqueId()).get();
+            } catch (InterruptedException | ExecutionException e) {
+                this.tryToSendMessageToPlayer(senderUUID, Component.text("Es ist ein Fehler aufgetreten",
+                        NamedTextColor.RED));
+                return;
+            }
         }
 
-        if(!senderFriend.friendRequests().contains(playerToAccept.uniqueId())) {
+        if((friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_ACCEPT_MESSAGE)
+                || friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_DENY_MESSAGE))
+                && !senderFriend.friendRequests().contains(playerToInteract.uniqueId())) {
             this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast von diesem Spieler keine Freundschaftsanfrage erhalten",
                     NamedTextColor.RED));
             return;
+        } else if (friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_REMOVE_MESSAGE)
+                && !senderFriend.friends().contains(playerToInteract.uniqueId())) {
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du bist mit diesem Spieler nicht befreundet",
+                    NamedTextColor.RED));
+            return;
         }
 
-        if(friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_ACCEPT_MESSAGE)) {
-            senderFriend.friendRequests().remove(playerToAccept.uniqueId());
-            senderFriend.friends().add(playerToAccept.uniqueId());
+        if (friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_ACCEPT_MESSAGE)) {
+            senderFriend.friendRequests().remove(playerToInteract.uniqueId());
+            senderFriend.friends().add(playerToInteract.uniqueId());
             senderFriend.update(true);
 
-            friendToAccept.friendRequests().remove(senderPlayer.uniqueId());
-            friendToAccept.friends().add(senderPlayer.uniqueId());
-            friendToAccept.update(true);
+            friendToInteract.friendRequests().remove(senderPlayer.uniqueId());
+            friendToInteract.friends().add(senderPlayer.uniqueId());
+            friendToInteract.update(true);
 
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du bist nun mit " + playerToAccept.name() + " befreundet"));
-            this.tryToSendMessageToPlayer(playerToAccept.uniqueId(), Component.text(senderPlayer.name() + " hat deine Freundschaftsanfrage aktzeptiert"));
-        } else if(friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_DENY_MESSAGE)) {
-            senderFriend.friendRequests().remove(playerToAccept.uniqueId());
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du bist nun mit " + playerToInteract.name() + " befreundet"));
+            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.text(senderPlayer.name() + " hat deine Freundschaftsanfrage aktzeptiert"));
+
+        } else if (friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_DENY_MESSAGE)) {
+            senderFriend.friendRequests().remove(playerToInteract.uniqueId());
             senderFriend.update(true);
 
-            friendToAccept.friendRequests().remove(senderPlayer.uniqueId());
-            friendToAccept.update(true);
+            friendToInteract.friendRequests().remove(senderPlayer.uniqueId());
+            friendToInteract.update(true);
 
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast die Freundschaftsanfrage von " + playerToAccept.name() + " abgelehnt"));
-            this.tryToSendMessageToPlayer(playerToAccept.uniqueId(), Component.text(senderPlayer.name() + " hat deine Freundschaftsanfrage abgelehnt"));
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast die Freundschaftsanfrage von " + playerToInteract.name() + " abgelehnt"));
+            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.text(senderPlayer.name() + " hat deine Freundschaftsanfrage abgelehnt"));
+
+        } else if (friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_REMOVE_MESSAGE)) {
+            senderFriend.friends().remove(playerToInteract.uniqueId());
+            senderFriend.update(true);
+
+            friendToInteract.friends().remove(senderPlayer.uniqueId());
+            friendToInteract.update(true);
+
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Die Freundschaft mit " + playerToInteract.name() + " wurde aufgelöst"));
+            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.text("Die Freundschaft mit " + senderPlayer.name() + " wurde aufgelöst"));
 
         }
     }
 
-    /*public void acceptFriend(UUID senderUUID, String playerNameToAccept) {
-        if(senderUUID == null || playerNameToAccept == null) {
+    public void executeToAll(UUID senderUUID, String friendConstant) {
+        if(senderUUID == null) {
             return;
         }
 
@@ -224,79 +234,17 @@ public class FriendManager extends SimpleManager {
         }
         SimpleFriend senderFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
 
-        CloudOfflinePlayer playerToAccept = this.getOfflineCloudPlayerByName(playerNameToAccept);
-        if(playerToAccept == null) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Es ist ein Fehler aufgetreten",
-                    NamedTextColor.RED));
-            return;
+        ArrayList<UUID> entries = (friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_REMOVE_MESSAGE)
+                ? senderFriend.friends() : senderFriend.friendRequests());
+
+        for (Iterator<UUID> iterator = entries.iterator(); iterator.hasNext();) {
+            UUID friendListEntry = iterator.next();
+            CloudOfflinePlayer cloudOfflinePlayer = this.getOfflineCloudPlayerById(friendListEntry);
+            if(cloudOfflinePlayer == null) {
+                continue;
+            }
+
+            this.executeSingle(senderUUID, cloudOfflinePlayer.name(), friendConstant);
         }
-        SimpleFriend friendToAccept;
-        try {
-            friendToAccept = SimpleFriend.getSimpleFriendByUUID(playerToAccept.uniqueId()).get();
-        } catch (InterruptedException | ExecutionException e) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Es ist ein Fehler aufgetreten",
-                    NamedTextColor.RED));
-            return;
-        }
-
-        if(!senderFriend.friendRequests().contains(playerToAccept.uniqueId())) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast von diesem Spieler keine Freundschaftsanfrage erhalten",
-                    NamedTextColor.RED));
-            return;
-        }
-
-        senderFriend.friendRequests().remove(playerToAccept.uniqueId());
-        senderFriend.friends().add(playerToAccept.uniqueId());
-        senderFriend.update(true);
-
-        friendToAccept.friendRequests().remove(senderPlayer.uniqueId());
-        friendToAccept.friends().add(senderPlayer.uniqueId());
-        friendToAccept.update(true);
-
-        this.tryToSendMessageToPlayer(senderUUID, Component.text("Du bist nun mit " + playerToAccept.name() + " befreundet"));
-        this.tryToSendMessageToPlayer(playerToAccept.uniqueId(), Component.text(senderPlayer.name() + " hat deine Freundschaftsanfrage aktzeptiert"));
     }
-
-    public void denyFriend(UUID senderUUID, String playerNameToDeny) {
-        if(senderUUID == null || playerNameToDeny == null) {
-            return;
-        }
-
-        CloudPlayer senderPlayer = this.getCloudPlayerById(senderUUID);
-        if(senderPlayer == null) {
-            return;
-        }
-        SimpleFriend senderFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
-
-        CloudOfflinePlayer playerToAccept = this.getOfflineCloudPlayerByName(playerNameToDeny);
-        if(playerToAccept == null) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Es ist ein Fehler aufgetreten",
-                    NamedTextColor.RED));
-            return;
-        }
-        SimpleFriend friendToDeny;
-        try {
-            friendToDeny = SimpleFriend.getSimpleFriendByUUID(playerToAccept.uniqueId()).get();
-        } catch (InterruptedException | ExecutionException e) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Es ist ein Fehler aufgetreten",
-                    NamedTextColor.RED));
-            return;
-        }
-
-        if(!senderFriend.friendRequests().contains(playerToAccept.uniqueId())) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast von diesem Spieler keine Freundschaftsanfrage erhalten",
-                    NamedTextColor.RED));
-            return;
-        }
-
-        senderFriend.friendRequests().remove(playerToAccept.uniqueId());
-        senderFriend.update(true);
-
-        friendToDeny.friendRequests().remove(senderPlayer.uniqueId());
-        friendToDeny.update(true);
-
-        this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast die Freundschaftsanfrage von " + playerToAccept.name() + " abgelehnt"));
-        this.tryToSendMessageToPlayer(playerToAccept.uniqueId(), Component.text(senderPlayer.name() + " hat deine Freundschaftsanfrage abgelehnt"));
-
-    } */
 }
