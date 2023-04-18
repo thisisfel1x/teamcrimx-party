@@ -3,6 +3,7 @@ package net.teamcrimx.partyandfriends.cloud;
 import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -29,7 +30,7 @@ public class SimpleManager {
         return this.partyAndFriendsModule.playerManager().firstOfflinePlayer(name);
     }
 
-    public void tryToSendMessageToPlayer(UUID playerId, Component message) {
+    protected void tryToSendMessageToPlayer(UUID playerId, Component message) {
         CloudPlayer cloudPlayer = this.getCloudPlayerById(playerId);
 
         if (cloudPlayer == null) {
@@ -41,5 +42,11 @@ public class SimpleManager {
 
     public void prefix(Component prefix) {
         this.prefix = prefix;
+    }
+
+    protected void sendErrorMessage(UUID uniqueId, @Nullable String debug) {
+        this.tryToSendMessageToPlayer(uniqueId,
+                Component.text("Es ist ein Fehler aufgetreten" + (debug != null ? (" (" + debug + ")") : ""),
+                        NamedTextColor.RED));
     }
 }

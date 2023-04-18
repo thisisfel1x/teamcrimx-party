@@ -2,6 +2,9 @@ package net.teamcrimx.partyandfriends.api.friends;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import eu.cloudnetservice.driver.CloudNetDriver;
+import eu.cloudnetservice.modules.bridge.player.PlayerManager;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.util.TriState;
 import net.teamcrimx.partyandfriends.api.constants.CloudConstants;
 import net.teamcrimx.partyandfriends.api.database.MongoCollection;
@@ -30,8 +33,15 @@ public class SimpleFriend {
 
         this.onlineFriendsCache = Caffeine.newBuilder()
                 .maximumSize(128)
-                .refreshAfterWrite(30, TimeUnit.SECONDS)
-                .build(k -> CloudConstants.playerManager.onlinePlayer(k) != null ? TriState.TRUE : TriState.FALSE);
+                .refreshAfterWrite(10, TimeUnit.SECONDS)
+                .build(k -> {
+                    PlayerManager playerManager = CloudNetDriver.instance().serviceRegistry()
+                            .firstProvider(PlayerManager.class);
+                    try {
+                        playerManager.onlinePlayer(k).playerExecutor().sendChatMessage(Component.text("reloading data"));
+                    } catch (Exception ignored) { }
+                    return playerManager.onlinePlayer(k) != null ? TriState.TRUE : TriState.FALSE;
+                });
 
         for (UUID friend : this.friends) {
             this.onlineFriendsCache.put(friend, TriState.NOT_SET);
@@ -53,6 +63,10 @@ public class SimpleFriend {
 
     public ArrayList<UUID> friendRequests() {
         return friendRequests;
+    }
+
+    public LoadingCache<UUID, TriState> onlineFriendsCache() {
+        return onlineFriendsCache;
     }
 
     public static CompletableFuture<@Nullable SimpleFriend> getSimpleFriendByUUID(UUID uuid) {
@@ -80,12 +94,19 @@ public class SimpleFriend {
                 .filter(id -> CloudConstants.playerManager.onlinePlayer(id) == null)
                 .toList());
 
+        for (UUID friend : this.friends) {
+            if(this.onlineFriendsCache.getIfPresent(friend) == null) {
+                this.onlineFriendsCache.put(friend, TriState.NOT_SET);
+            }
+        }
+
+        this.onlineFriendsCache.refreshAll(this.friends);
+
         if(database) {
             MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friends",
                     this.friends.stream().map(UUID::toString).collect(Collectors.toList()), MongoCollection.FRIENDS);
             MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friendRequests",
                     this.friendRequests.stream().map(UUID::toString).collect(Collectors.toList()), MongoCollection.FRIENDS);
         }
-
     }
 }

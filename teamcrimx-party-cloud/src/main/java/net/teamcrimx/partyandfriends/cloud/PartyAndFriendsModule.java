@@ -5,6 +5,7 @@ import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
 import net.teamcrimx.partyandfriends.api.database.MongoMethodsUtil;
 import net.teamcrimx.partyandfriends.cloud.friends.listener.ChannelFriendMessageReceiveListener;
@@ -23,6 +24,8 @@ import java.util.concurrent.ScheduledExecutorService;
 public class PartyAndFriendsModule extends DriverModule {
 
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
+    private final MiniMessage miniMessage = MiniMessage.builder().build();
+
     private PartyManager partyManager;
     private ActivePartiesTracker partiesTracker;
 
@@ -42,6 +45,7 @@ public class PartyAndFriendsModule extends DriverModule {
         // FRIEND
         CloudNetDriver.instance().eventManager().registerListener(new ChannelFriendMessageReceiveListener(this));
         CloudNetDriver.instance().eventManager().registerListener(new ProxyConnectListener(this));
+        CloudNetDriver.instance().eventManager().registerListener(new net.teamcrimx.partyandfriends.cloud.friends.listener.player.ProxyDisconnectListener(this));
 
 
         /*this.scheduledExecutorService.scheduleAtFixedRate(() -> {
@@ -67,6 +71,10 @@ public class PartyAndFriendsModule extends DriverModule {
     @ModuleTask(event = ModuleLifeCycle.STOPPED)
     private void onStop() { // Module is being stopped
         //System.out.printf("Trying to disable custom module %s", this.getClass().getName());
+    }
+
+    public MiniMessage miniMessage() {
+        return miniMessage;
     }
 
     public PlayerManager playerManager() {
