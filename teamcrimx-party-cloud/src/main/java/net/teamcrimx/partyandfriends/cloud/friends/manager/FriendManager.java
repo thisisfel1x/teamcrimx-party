@@ -4,6 +4,8 @@ import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -100,6 +102,12 @@ public class FriendManager extends SimpleManager {
         if(cloudPlayerToAdd == null) {
             this.tryToSendMessageToPlayer(senderUUID,
                     Component.text("Dieser Spieler war noch nie online", NamedTextColor.RED));
+            return;
+        }
+
+        if(senderUUID.toString().equalsIgnoreCase(cloudPlayerToAdd.uniqueId().toString())) {
+            this.tryToSendMessageToPlayer(senderUUID,
+                    Component.text("Du kannst dich nicht selbst hinzufügen", NamedTextColor.RED));
             return;
         }
 
@@ -265,7 +273,7 @@ public class FriendManager extends SimpleManager {
 
         SimpleFriend simpleFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
 
-        if(simpleFriend.onlineFriendsCache().asMap().size() == 0) {
+        if(simpleFriend.onlineFriends().size() == 0) {
             this.tryToSendMessageToPlayer(senderUUID, Component.text("Aktuell sind keine Freunde online",
                     NamedTextColor.GRAY));
         } else {
@@ -307,16 +315,22 @@ public class FriendManager extends SimpleManager {
             this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast keine offenen Freundschaftsanfragen",
                     NamedTextColor.GRAY));
         } else {
-           List<String> names = simpleFriend.friends().stream().map(uuid -> {
+           List<TextComponent> names = simpleFriend.friendRequests().stream().map(uuid -> {
                 CloudOfflinePlayer cloudOfflinePlayer = this.getOfflineCloudPlayerById(uuid);
                 if(cloudOfflinePlayer == null) {
-                    return "null";
+                    return Component.text("null");
                 }
-                return cloudOfflinePlayer.name();
+                return Component.text(cloudOfflinePlayer.name(), NamedTextColor.YELLOW)
+                        .hoverEvent(HoverEvent.showText(Component.text("Klicke zum annehmen", NamedTextColor.GREEN)))
+                        .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND,
+                                "/friend add " + cloudOfflinePlayer.name()));
             }).toList();
-            this.tryToSendMessageToPlayer(senderUUID, Component.textOfChildren(this.friendPrefix,
-                    Component.text("Folgende Freundschaftsanfragen stehen aus:", NamedTextColor.GRAY)));
-            this.tryToSendMessageToPlayer(senderUUID, Component.text(String.join(", ", names), NamedTextColor.GREEN));
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Folgende Freundschaftsanfragen stehen aus", NamedTextColor.GRAY));
+
+            Component toSend = Component.join(JoinConfiguration.builder()
+                    .separator(Component.text(", ", NamedTextColor.DARK_GRAY)).build(), names);
+
+            this.tryToSendMessageToPlayer(senderUUID, toSend);
         }
     }
 
@@ -358,6 +372,40 @@ public class FriendManager extends SimpleManager {
         for (UUID onlineFriend : simpleFriend.onlineFriends()) {
             this.tryToSendMessageToPlayer(onlineFriend, toSend);
         }
+
+    }
+
+    public void messagePlayer(UUID senderUUID, String playerName, String message) {
+        SimpleFriend senderFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
+
+        CloudPlayer receiver = this.partyAndFriendsModule.playerManager().firstOnlinePlayer(playerName);
+        if(receiver == null) {
+            this.sendErrorMessage(senderUUID, "NULL");
+            return;
+        }
+
+        if(senderUUID.toString().equalsIgnoreCase(receiver.uniqueId().toString())) {
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du kannst dir nicht selber Nachrichten schreiben", NamedTextColor.RED));
+            return;
+        }
+
+        SimpleFriend receiverFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(receiver.uniqueId());
+
+        Component senderMessage = Component.join(JoinConfiguration.builder().build(),
+                Component.text("Du", NamedTextColor.GREEN), Component.text(" » ", NamedTextColor.DARK_GRAY),
+                Component.text(receiverFriend.name(), NamedTextColor.YELLOW), Component.text(": ", NamedTextColor.DARK_GRAY),
+                Component.text(message, NamedTextColor.WHITE));
+
+        this.tryToSendMessageToPlayer(senderUUID, senderMessage);
+
+        Component receiverMessage = Component.join(JoinConfiguration.builder().build(),
+                Component.text(senderFriend.name(), NamedTextColor.YELLOW), Component.text(" » ", NamedTextColor.DARK_GRAY),
+                Component.text("Du", NamedTextColor.GREEN), Component.text(": ", NamedTextColor.DARK_GRAY),
+                Component.text(message, NamedTextColor.WHITE))
+                .hoverEvent(HoverEvent.showText(Component.text("Klicke zum antworten", NamedTextColor.GREEN)))
+                .clickEvent(ClickEvent.suggestCommand("/msg " + senderFriend.name()));
+
+        this.tryToSendMessageToPlayer(receiverFriend.uuid(), receiverMessage);
 
     }
 

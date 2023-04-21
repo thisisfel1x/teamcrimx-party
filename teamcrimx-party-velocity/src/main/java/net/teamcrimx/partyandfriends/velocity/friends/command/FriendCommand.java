@@ -1,4 +1,4 @@
-package net.teamcrimx.partyandfriends.velocity.friends;
+package net.teamcrimx.partyandfriends.velocity.friends.command;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
@@ -65,8 +65,6 @@ public class FriendCommand implements SimpleCommand {
                 case "deny" -> this.sendChannelMessageToNode(FriendConstants.FRIEND_CHANNEL, FriendConstants.FRIEND_DENY_MESSAGE,
                         DataBuf.empty().writeUniqueId(player.getUniqueId()).writeString(playerName));
                 case "jump" -> this.sendChannelMessageToNode(FriendConstants.FRIEND_CHANNEL, FriendConstants.FRIEND_JUMP_MESSAGE,
-                        DataBuf.empty().writeUniqueId(player.getUniqueId()).writeString(playerName));
-                case "msg" -> this.sendChannelMessageToNode(FriendConstants.FRIEND_CHANNEL, FriendConstants.FRIEND_MSG_MESSAGE,
                         DataBuf.empty().writeUniqueId(player.getUniqueId()).writeString(playerName));
             }
         }

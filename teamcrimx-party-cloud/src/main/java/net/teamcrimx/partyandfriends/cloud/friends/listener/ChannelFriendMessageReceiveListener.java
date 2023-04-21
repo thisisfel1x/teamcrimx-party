@@ -40,6 +40,7 @@ public class ChannelFriendMessageReceiveListener {
             case FriendConstants.FRIEND_LIST_MESSAGE -> this.partyAndFriendsModule.friendManager().listFriends(content.readUniqueId());
             case FriendConstants.FRIEND_LIST_REQUESTS_MESSAGE -> this.partyAndFriendsModule.friendManager().listFriendRequests(content.readUniqueId());
             case FriendConstants.FRIEND_JUMP_MESSAGE -> this.partyAndFriendsModule.friendManager().jumpToPlayer(content.readUniqueId(), content.readString());
+            case FriendConstants.FRIEND_MSG_MESSAGE -> this.partyAndFriendsModule.friendManager().messagePlayer(content.readUniqueId(), content.readString(), content.readString());
         }
 
     }

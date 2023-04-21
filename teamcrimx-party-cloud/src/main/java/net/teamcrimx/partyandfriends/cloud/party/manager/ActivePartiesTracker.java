@@ -23,15 +23,22 @@ public class ActivePartiesTracker {
 
     public void checkActiveParties() {
         for (SimpleParty simpleParty : this.activeParties.values()) {
-            if (simpleParty.partyMembers().size() > 1) {
+            if(simpleParty.partyMembers().size() > 1) {
                 continue;
             }
-            if (System.currentTimeMillis() - simpleParty.creationDate() > (2 * 60 * 1000)) { // delete party after x seconds
-                for (UUID partyMember : simpleParty.partyMembers()) {
-                    this.partyAndFriendsModule.getPartyManager()
-                            .removeFromParty(partyMember);
+
+            if (simpleParty.partyMembers().size() == 1) {
+                if (System.currentTimeMillis() - simpleParty.creationDate() > (2 * 60 * 1000)) { // delete party after 2 minutes
+                    for (UUID partyMember : simpleParty.partyMembers()) {
+                        this.partyAndFriendsModule.getPartyManager()
+                                .removeFromParty(partyMember);
+                    }
+
+                    this.activeParties.remove(simpleParty.partyId());
+                    // TODO: delete party
                 }
-                // TODO: delete party
+            } else if (simpleParty.partyMembers().size() == 0) {
+                this.activeParties.remove(simpleParty.partyId());
             }
         }
     }

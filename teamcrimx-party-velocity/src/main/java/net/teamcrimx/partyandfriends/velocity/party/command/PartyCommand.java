@@ -1,9 +1,8 @@
-package net.teamcrimx.partyandfriends.velocity.party.commands;
+package net.teamcrimx.partyandfriends.velocity.party.command;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import eu.cloudnetservice.driver.CloudNetDriver;
-import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;

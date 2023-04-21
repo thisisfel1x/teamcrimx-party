@@ -54,11 +54,9 @@ public class PartyAndFriendsModule extends DriverModule {
             for (SimpleFriend simpleFriend : this.friendHolder.simpleFriendMap().values()) {
                 simpleFriend.update(false);
             }
-        }, 30L, 10L, TimeUnit.SECONDS);
 
-        /*this.scheduledExecutorService.scheduleAtFixedRate(() -> {
             this.partiesTracker.checkActiveParties();
-        }, 30L, 30L, TimeUnit.SECONDS); */
+        }, 30L, 10L, TimeUnit.SECONDS);
     }
 
     @ModuleTask(event = ModuleLifeCycle.LOADED)

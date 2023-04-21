@@ -36,11 +36,7 @@ public class SimpleFriend {
         this.onlineFriendsCache = Caffeine.newBuilder()
                 .maximumSize(128)
                 .refreshAfterWrite(10, TimeUnit.SECONDS)
-                .build(k -> {
-                    PlayerManager playerManager = CloudNetDriver.instance().serviceRegistry()
-                            .firstProvider(PlayerManager.class);
-                    return playerManager.onlinePlayer(k) != null ? TriState.TRUE : TriState.FALSE;
-                });
+                .build(k -> CloudConstants.playerManager.onlinePlayer(k) != null ? TriState.TRUE : TriState.FALSE);
 
         for (UUID friend : this.friends) {
             this.onlineFriendsCache.put(friend, TriState.NOT_SET);
@@ -97,7 +93,7 @@ public class SimpleFriend {
 
     public void update(boolean database) {
         this.onlineFriends = new ArrayList<>(friends.stream()
-                .filter(id -> CloudConstants.playerManager.onlinePlayer(id) == null)
+                .filter(id -> CloudConstants.playerManager.onlinePlayer(id) != null)
                 .toList());
 
         for (UUID friend : this.friends) {

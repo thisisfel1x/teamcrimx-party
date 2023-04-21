@@ -10,9 +10,10 @@ import eu.cloudnetservice.driver.CloudNetDriver;
 import eu.cloudnetservice.driver.channel.ChannelMessage;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
-import net.teamcrimx.partyandfriends.velocity.friends.FriendCommand;
-import net.teamcrimx.partyandfriends.velocity.party.commands.PartyChatCommand;
-import net.teamcrimx.partyandfriends.velocity.party.commands.PartyCommand;
+import net.teamcrimx.partyandfriends.velocity.friends.command.FriendCommand;
+import net.teamcrimx.partyandfriends.velocity.friends.command.FriendMsgCommand;
+import net.teamcrimx.partyandfriends.velocity.party.command.PartyChatCommand;
+import net.teamcrimx.partyandfriends.velocity.party.command.PartyCommand;
 import org.slf4j.Logger;
 
 @Plugin(id = "teamcrimx-party", name = "teamcrimx-party", version = "ALPHA 1",
@@ -37,6 +38,8 @@ public class VelocityParty {
         // FRIENDS
         commandManager.register(commandManager.metaBuilder("friend").plugin(this).build(),
                 new FriendCommand(this));
+        commandManager.register(commandManager.metaBuilder("msg").plugin(this).build(),
+                new FriendMsgCommand(this));
 
         // PARTY
         commandManager.register(commandManager.metaBuilder("party").plugin(this).build(),
