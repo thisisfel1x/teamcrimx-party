@@ -5,6 +5,7 @@ import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.util.TriState;
@@ -67,6 +68,8 @@ public class FriendManager extends SimpleManager {
                     this.tryToSendMessageToPlayer(uniqueId, Component.text("Du hast offene Freundschaftsanfragen",
                             NamedTextColor.GREEN));
                 }
+
+                this.notifyFriends(uniqueId, NotifyType.ONLINE);
 
             } catch (InterruptedException | ExecutionException ignored) {
                 // TODO: send message
@@ -263,26 +266,31 @@ public class FriendManager extends SimpleManager {
         SimpleFriend simpleFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
 
         if(simpleFriend.onlineFriendsCache().asMap().size() == 0) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Aktuell sind keine Freunde online!"));
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Aktuell sind keine Freunde online",
+                    NamedTextColor.GRAY));
         } else {
             this.tryToSendMessageToPlayer(senderUUID, Component.text("Diese Freunde sind aktuell online",
                     NamedTextColor.GRAY));
 
             simpleFriend.onlineFriendsCache().asMap().forEach((uuid, triState) -> {
-                /*if(triState != TriState.TRUE) {
+                if(triState != TriState.TRUE) {
                     return;
                 }
 
                 CloudPlayer loopPlayer = this.getCloudPlayerById(uuid);
                 if(loopPlayer == null) {
                     return;
-                } */
+                }
 
-                //String onlineServer = loopPlayer.connectedService().serverName();
-                this.tryToSendMessageToPlayer(senderUUID, Component.textOfChildren(Component.text(uuid.toString(),
+                String onlineServer = loopPlayer.connectedService().serverName();
+                this.tryToSendMessageToPlayer(senderUUID, Component.textOfChildren(Component.text(loopPlayer.name(),
                                 NamedTextColor.YELLOW),
                         Component.text(" befindet sich auf ", NamedTextColor.GRAY),
-                        Component.text(triState.toString(), NamedTextColor.GREEN)));
+                        Component.text(onlineServer, TextColor.fromHexString("#4DA8FB"))
+                                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND,
+                                        "/friend jump " + loopPlayer.name()))
+                                .hoverEvent(HoverEvent.showText(Component.text("Klicke zum verbinden",
+                                        NamedTextColor.GREEN)))));
             });
 
         }
@@ -296,7 +304,8 @@ public class FriendManager extends SimpleManager {
         SimpleFriend simpleFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
 
         if(simpleFriend.friendRequests().size() == 0) {
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast keine offenen Freundschaftsanfragen"));
+            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast keine offenen Freundschaftsanfragen",
+                    NamedTextColor.GRAY));
         } else {
            List<String> names = simpleFriend.friends().stream().map(uuid -> {
                 CloudOfflinePlayer cloudOfflinePlayer = this.getOfflineCloudPlayerById(uuid);
@@ -337,4 +346,23 @@ public class FriendManager extends SimpleManager {
 
         senderPlayer.playerExecutor().connect(connectedServer);
     }
+
+    public void notifyFriends(UUID senderUUID, NotifyType notifyType) {
+        SimpleFriend simpleFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
+
+        Component toSend = Component.textOfChildren(Component.text(simpleFriend.name(), NamedTextColor.YELLOW),
+                Component.text(" ist nun ", NamedTextColor.GRAY),
+                (notifyType == NotifyType.ONLINE ? Component.text("online", NamedTextColor.GREEN)
+                        : Component.text("offline", NamedTextColor.RED)));
+
+        for (UUID onlineFriend : simpleFriend.onlineFriends()) {
+            this.tryToSendMessageToPlayer(onlineFriend, toSend);
+        }
+
+    }
+
+    public enum NotifyType {
+        ONLINE, OFFLINE
+    }
+
 }

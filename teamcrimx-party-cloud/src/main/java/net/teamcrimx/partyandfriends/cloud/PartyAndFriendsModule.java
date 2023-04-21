@@ -8,6 +8,7 @@ import eu.cloudnetservice.modules.bridge.player.PlayerManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
 import net.teamcrimx.partyandfriends.api.database.MongoMethodsUtil;
+import net.teamcrimx.partyandfriends.api.friends.SimpleFriend;
 import net.teamcrimx.partyandfriends.cloud.friends.listener.ChannelFriendMessageReceiveListener;
 import net.teamcrimx.partyandfriends.cloud.friends.listener.player.ProxyConnectListener;
 import net.teamcrimx.partyandfriends.cloud.friends.manager.FriendHolder;
@@ -18,8 +19,10 @@ import net.teamcrimx.partyandfriends.cloud.party.listener.player.ServerSwitchLis
 import net.teamcrimx.partyandfriends.cloud.party.manager.ActivePartiesTracker;
 import net.teamcrimx.partyandfriends.cloud.party.manager.PartyManager;
 
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class PartyAndFriendsModule extends DriverModule {
 
@@ -47,6 +50,11 @@ public class PartyAndFriendsModule extends DriverModule {
         CloudNetDriver.instance().eventManager().registerListener(new ProxyConnectListener(this));
         CloudNetDriver.instance().eventManager().registerListener(new net.teamcrimx.partyandfriends.cloud.friends.listener.player.ProxyDisconnectListener(this));
 
+        this.scheduledExecutorService.scheduleAtFixedRate(() -> {
+            for (SimpleFriend simpleFriend : this.friendHolder.simpleFriendMap().values()) {
+                simpleFriend.update(false);
+            }
+        }, 30L, 10L, TimeUnit.SECONDS);
 
         /*this.scheduledExecutorService.scheduleAtFixedRate(() -> {
             this.partiesTracker.checkActiveParties();

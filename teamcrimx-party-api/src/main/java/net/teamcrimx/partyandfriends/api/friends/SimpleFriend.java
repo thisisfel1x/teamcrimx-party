@@ -19,13 +19,15 @@ import java.util.stream.Collectors;
 
 public class SimpleFriend {
 
+    private final String name;
     private final UUID uuid;
     private final ArrayList<UUID> friends;
     private ArrayList<UUID> onlineFriends;
     private final ArrayList<UUID> friendRequests;
     private LoadingCache<UUID, TriState> onlineFriendsCache;
 
-    public SimpleFriend(UUID uuid, ArrayList<UUID> friends, ArrayList<UUID> onlineFriends, ArrayList<UUID> friendRequests) {
+    public SimpleFriend(String name, UUID uuid, ArrayList<UUID> friends, ArrayList<UUID> onlineFriends, ArrayList<UUID> friendRequests) {
+        this.name = name;
         this.uuid = uuid;
         this.friends = friends;
         this.onlineFriends = onlineFriends;
@@ -37,9 +39,6 @@ public class SimpleFriend {
                 .build(k -> {
                     PlayerManager playerManager = CloudNetDriver.instance().serviceRegistry()
                             .firstProvider(PlayerManager.class);
-                    try {
-                        playerManager.onlinePlayer(k).playerExecutor().sendChatMessage(Component.text("reloading data"));
-                    } catch (Exception ignored) { }
                     return playerManager.onlinePlayer(k) != null ? TriState.TRUE : TriState.FALSE;
                 });
 
@@ -47,6 +46,10 @@ public class SimpleFriend {
             this.onlineFriendsCache.put(friend, TriState.NOT_SET);
             this.onlineFriendsCache.refresh(friend);
         }
+    }
+
+    public String name() {
+        return name;
     }
 
     public UUID uuid() {
@@ -71,6 +74,8 @@ public class SimpleFriend {
 
     public static CompletableFuture<@Nullable SimpleFriend> getSimpleFriendByUUID(UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
+            String name = CloudConstants.playerManager.onlinePlayer(uuid).name();
+
             Document friendDocument = MongoDatabaseImpl.mongoMethodsUtil().getDocument(uuid, MongoCollection.FRIENDS);
             if(friendDocument == null) {
                 return null;
@@ -85,7 +90,8 @@ public class SimpleFriend {
             List<UUID> requests = friendDocument.getList("friendRequests", String.class)
                     .stream().map(UUID::fromString).toList();
 
-            return new SimpleFriend(uuid, new ArrayList<>(allFriends), new ArrayList<>(onlineFriends), new ArrayList<>(requests));
+            return new SimpleFriend(name, uuid, new ArrayList<>(allFriends),
+                    new ArrayList<>(onlineFriends), new ArrayList<>(requests));
         });
     }
 
@@ -98,9 +104,8 @@ public class SimpleFriend {
             if(this.onlineFriendsCache.getIfPresent(friend) == null) {
                 this.onlineFriendsCache.put(friend, TriState.NOT_SET);
             }
+            this.onlineFriendsCache.refresh(friend);
         }
-
-        this.onlineFriendsCache.refreshAll(this.friends);
 
         if(database) {
             MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friends",

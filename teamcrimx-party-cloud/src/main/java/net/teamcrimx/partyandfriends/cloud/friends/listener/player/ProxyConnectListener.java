@@ -15,7 +15,6 @@ public class ProxyConnectListener {
     @EventListener
     public void on(BridgeProxyPlayerLoginEvent event) {
 
-        // TODO : get friends or check for database
         this.partyAndFriendsModule.friendManager().checkForDatabaseAndInitializeFriends(event.cloudPlayer().uniqueId());
 
     }
