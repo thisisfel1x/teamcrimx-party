@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import eu.cloudnetservice.driver.registry.ServiceRegistry;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
 import net.kyori.adventure.util.TriState;
+import net.teamcrimx.partyandfriends.api.NetworkPlayer;
 import net.teamcrimx.partyandfriends.api.constants.CloudConstants;
 import net.teamcrimx.partyandfriends.api.database.MongoCollection;
 import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
@@ -18,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public class SimpleFriend {
+public class SimpleFriend extends NetworkPlayer {
 
     private final String name;
     private final UUID uuid;
@@ -29,6 +30,7 @@ public class SimpleFriend {
     private LoadingCache<UUID, TriState> onlineFriendsCache;
 
     public SimpleFriend(String name, UUID uuid, ArrayList<UUID> friends, ArrayList<UUID> onlineFriends, ArrayList<UUID> friendRequests) {
+        super(uuid, name);
         this.name = name;
         this.uuid = uuid;
         this.friends = friends;

@@ -141,13 +141,11 @@ public class FriendManager extends SimpleManager {
         simpleFriendToAdd.update(true);
 
         this.tryToSendMessageToPlayer(senderUUID,
-                Component.text("Eine Freundschaftsanfrage wurde an " + cloudPlayerToAdd.name() + " versandt",
-                        NamedTextColor.GREEN));
-        /*tryToSendMessageToPlayer(cloudPlayerToAdd.uniqueId(),
-                Component.text("Du hast eine Freundschaftsanfrage von " + senderPlayer.name() + " erhalten",
-                        NamedTextColor.GRAY));
-        */
-        Component a = Component.text("Du hast eine Freundschaftsanfrage von" + senderPlayer.name() + " erhalten. Klicke zum ", NamedTextColor.GRAY);
+                Component.textOfChildren(Component.text("Eine Freundschaftsanfrage wurde an ", NamedTextColor.GRAY),
+                        simpleFriendToAdd.formattedName(), Component.text(" versand", NamedTextColor.GRAY)));
+
+        Component a = Component.textOfChildren(Component.text("Du hast eine Freundschaftsanfrage von ", NamedTextColor.GRAY),
+                simpleFriend.formattedName(), Component.text(" bekommen", NamedTextColor.GRAY));
         Component b = Component.text("ANNEHMEN", NamedTextColor.GREEN)
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/friend accept " + senderPlayer.name()));
         Component c = Component.text("ABLEHNEN", NamedTextColor.RED)
@@ -207,8 +205,10 @@ public class FriendManager extends SimpleManager {
             //friendToInteract.onlineFriendsCache().put(senderPlayer.uniqueId(), TriState.NOT_SET);
             friendToInteract.update(true);
 
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du bist nun mit " + playerToInteract.name() + " befreundet"));
-            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.text(senderPlayer.name() + " hat deine Freundschaftsanfrage aktzeptiert"));
+            this.tryToSendMessageToPlayer(senderUUID, Component.textOfChildren(Component.text("Du bist nun mit ", NamedTextColor.GRAY),
+                    friendToInteract.formattedName(), Component.text(" befreundet", NamedTextColor.GRAY)));
+            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.textOfChildren(senderFriend.formattedName(),
+                    Component.text(" hat deine Freundschaftsanfrage aktzeptiert", NamedTextColor.GRAY)));
 
         } else if (friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_DENY_MESSAGE)) {
             senderFriend.friendRequests().remove(playerToInteract.uniqueId());
@@ -217,8 +217,10 @@ public class FriendManager extends SimpleManager {
             friendToInteract.friendRequests().remove(senderPlayer.uniqueId());
             friendToInteract.update(true);
 
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Du hast die Freundschaftsanfrage von " + playerToInteract.name() + " abgelehnt"));
-            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.text(senderPlayer.name() + " hat deine Freundschaftsanfrage abgelehnt"));
+            this.tryToSendMessageToPlayer(senderUUID, Component.textOfChildren(Component.text("Du hast die Freundschaftsanfrage von ", NamedTextColor.GRAY),
+                    friendToInteract.formattedName(), Component.text(" abgelehnt", NamedTextColor.RED)));
+            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.textOfChildren(senderFriend.formattedName(),
+                    Component.text(" hat deine Freundschaftsanfrage abgelehnt", NamedTextColor.GRAY)));
 
         } else if (friendConstant.equalsIgnoreCase(FriendConstants.FRIEND_REMOVE_MESSAGE)) {
             senderFriend.friends().remove(playerToInteract.uniqueId());
@@ -229,8 +231,10 @@ public class FriendManager extends SimpleManager {
             //friendToInteract.onlineFriendsCache().invalidate(senderPlayer.uniqueId());
             friendToInteract.update(true);
 
-            this.tryToSendMessageToPlayer(senderUUID, Component.text("Die Freundschaft mit " + playerToInteract.name() + " wurde aufgelöst"));
-            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.text("Die Freundschaft mit " + senderPlayer.name() + " wurde aufgelöst"));
+            this.tryToSendMessageToPlayer(senderUUID, Component.textOfChildren(Component.text("Die Freundschaft mit ", NamedTextColor.GRAY),
+                    friendToInteract.formattedName(), Component.text(" wurde aufgelöst", NamedTextColor.GRAY)));
+            this.tryToSendMessageToPlayer(playerToInteract.uniqueId(), Component.textOfChildren(Component.text("Die Freundschaft mit ", NamedTextColor.GRAY),
+                    senderFriend.formattedName(), Component.text(" wurde aufgelöst", NamedTextColor.GRAY)));
 
         }
     }
@@ -287,9 +291,10 @@ public class FriendManager extends SimpleManager {
                     return;
                 }
 
+                SimpleFriend simpleLoopFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(uuid);
+
                 String onlineServer = loopPlayer.connectedService().serverName();
-                this.tryToSendMessageToPlayer(senderUUID, Component.textOfChildren(Component.text(loopPlayer.name(),
-                                NamedTextColor.YELLOW),
+                this.tryToSendMessageToPlayer(senderUUID, Component.textOfChildren(simpleLoopFriend.formattedName(),
                         Component.text(" befindet sich auf ", NamedTextColor.GRAY),
                         Component.text(onlineServer, TextColor.fromHexString("#4DA8FB"))
                                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND,
@@ -361,7 +366,7 @@ public class FriendManager extends SimpleManager {
     public void notifyFriends(UUID senderUUID, NotifyType notifyType) {
         SimpleFriend simpleFriend = this.partyAndFriendsModule.friendHolder().simpleFriendMap().get(senderUUID);
 
-        Component toSend = Component.textOfChildren(Component.text(simpleFriend.name(), NamedTextColor.YELLOW),
+        Component toSend = Component.textOfChildren(simpleFriend.formattedName(),
                 Component.text(" ist nun ", NamedTextColor.GRAY),
                 (notifyType == NotifyType.ONLINE ? Component.text("online", NamedTextColor.GREEN)
                         : Component.text("offline", NamedTextColor.RED)));
@@ -390,13 +395,13 @@ public class FriendManager extends SimpleManager {
 
         Component senderMessage = Component.join(JoinConfiguration.builder().build(),
                 Component.text("Du", NamedTextColor.GREEN), Component.text(" » ", NamedTextColor.DARK_GRAY),
-                Component.text(receiverFriend.name(), NamedTextColor.YELLOW), Component.text(": ", NamedTextColor.DARK_GRAY),
+                receiverFriend.formattedName(), Component.text(": ", NamedTextColor.DARK_GRAY),
                 Component.text(message, NamedTextColor.WHITE));
 
         this.tryToSendMessageToPlayer(senderUUID, senderMessage);
 
         Component receiverMessage = Component.join(JoinConfiguration.builder().build(),
-                        Component.text(senderFriend.name(), NamedTextColor.YELLOW), Component.text(" » ", NamedTextColor.DARK_GRAY),
+                        senderFriend.formattedName(), Component.text(" » ", NamedTextColor.DARK_GRAY),
                         Component.text("Du", NamedTextColor.GREEN), Component.text(": ", NamedTextColor.DARK_GRAY),
                         Component.text(message, NamedTextColor.WHITE))
                 .hoverEvent(HoverEvent.showText(Component.text("Klicke zum antworten", NamedTextColor.GREEN)))
