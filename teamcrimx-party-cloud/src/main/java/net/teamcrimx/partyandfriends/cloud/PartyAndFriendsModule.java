@@ -1,10 +1,14 @@
 package net.teamcrimx.partyandfriends.cloud;
 
-import eu.cloudnetservice.driver.CloudNetDriver;
+import eu.cloudnetservice.driver.event.EventManager;
+import eu.cloudnetservice.driver.inject.InjectionLayer;
 import eu.cloudnetservice.driver.module.ModuleLifeCycle;
 import eu.cloudnetservice.driver.module.ModuleTask;
 import eu.cloudnetservice.driver.module.driver.DriverModule;
+import eu.cloudnetservice.driver.registry.ServiceRegistry;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
 import net.teamcrimx.partyandfriends.api.database.MongoMethodsUtil;
@@ -18,8 +22,8 @@ import net.teamcrimx.partyandfriends.cloud.party.listener.player.ProxyDisconnect
 import net.teamcrimx.partyandfriends.cloud.party.listener.player.ServerSwitchListener;
 import net.teamcrimx.partyandfriends.cloud.party.manager.ActivePartiesTracker;
 import net.teamcrimx.partyandfriends.cloud.party.manager.PartyManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,27 +32,20 @@ public class PartyAndFriendsModule extends DriverModule {
 
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     private final MiniMessage miniMessage = MiniMessage.builder().build();
-
+    private PlayerManager playerManager;;
     private PartyManager partyManager;
     private ActivePartiesTracker partiesTracker;
-
     private FriendManager friendManager;
     private FriendHolder friendHolder;
-
-    private PlayerManager playerManager;
     private MongoMethodsUtil mongoMethods;
 
-    @ModuleTask(event = ModuleLifeCycle.STARTED)
-    private void onStart() { // Module successfully started
-        // PARTY
-        CloudNetDriver.instance().eventManager().registerListener(new ChannelMessageReceiveListener(this));
-        CloudNetDriver.instance().eventManager().registerListener(new ProxyDisconnectListener(this));
-        CloudNetDriver.instance().eventManager().registerListener(new ServerSwitchListener(this));
+    @Inject
+    public PartyAndFriendsModule(@NonNull @Named("module") InjectionLayer<?> injectionLayer) {
+    }
 
-        // FRIEND
-        CloudNetDriver.instance().eventManager().registerListener(new ChannelFriendMessageReceiveListener(this));
-        CloudNetDriver.instance().eventManager().registerListener(new ProxyConnectListener(this));
-        CloudNetDriver.instance().eventManager().registerListener(new net.teamcrimx.partyandfriends.cloud.friends.listener.player.ProxyDisconnectListener(this));
+    @ModuleTask(order = 10, lifecycle = ModuleLifeCycle.STARTED)
+    private void onStart() { // Module successfully started
+        this.playerManager = ServiceRegistry.first(PlayerManager.class);
 
         this.scheduledExecutorService.scheduleAtFixedRate(() -> {
             for (SimpleFriend simpleFriend : this.friendHolder.simpleFriendMap().values()) {
@@ -59,10 +56,22 @@ public class PartyAndFriendsModule extends DriverModule {
         }, 30L, 10L, TimeUnit.SECONDS);
     }
 
-    @ModuleTask(event = ModuleLifeCycle.LOADED)
+    @ModuleTask(order = 5, lifecycle = ModuleLifeCycle.STARTED)
+    public void registerListener(EventManager eventManager) {
+        // PARTY
+        eventManager.registerListener(new ChannelMessageReceiveListener(this));
+        eventManager.registerListener(new ProxyDisconnectListener(this));
+        eventManager.registerListener(new ServerSwitchListener(this));
+
+        // FRIEND
+        eventManager.registerListener(new ChannelFriendMessageReceiveListener(this));
+        eventManager.registerListener(new ProxyConnectListener(this));
+        eventManager.registerListener(new net.teamcrimx.partyandfriends.cloud.friends.listener.player.ProxyDisconnectListener(this));
+    }
+
+    @ModuleTask(lifecycle = ModuleLifeCycle.LOADED)
     private void onLoad() { // Module is being loaded
-        this.playerManager = CloudNetDriver.instance().serviceRegistry()
-                .firstProvider(PlayerManager.class);
+        //this.playerManager = ServiceRegistry.first(PlayerManager.class);
 
         MongoDatabaseImpl.initializeDatabase();
         this.mongoMethods = MongoDatabaseImpl.mongoMethodsUtil();
@@ -74,7 +83,7 @@ public class PartyAndFriendsModule extends DriverModule {
         this.friendHolder = new FriendHolder();
     }
 
-    @ModuleTask(event = ModuleLifeCycle.STOPPED)
+    @ModuleTask(lifecycle = ModuleLifeCycle.STOPPED)
     private void onStop() { // Module is being stopped
         //System.out.printf("Trying to disable custom module %s", this.getClass().getName());
     }

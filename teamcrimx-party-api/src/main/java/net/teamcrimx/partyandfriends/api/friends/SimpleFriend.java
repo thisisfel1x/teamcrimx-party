@@ -2,9 +2,8 @@ package net.teamcrimx.partyandfriends.api.friends;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import eu.cloudnetservice.driver.CloudNetDriver;
+import eu.cloudnetservice.driver.registry.ServiceRegistry;
 import eu.cloudnetservice.modules.bridge.player.PlayerManager;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.util.TriState;
 import net.teamcrimx.partyandfriends.api.constants.CloudConstants;
 import net.teamcrimx.partyandfriends.api.database.MongoCollection;
@@ -12,7 +11,9 @@ import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
 import org.bson.Document;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -22,8 +23,9 @@ public class SimpleFriend {
     private final String name;
     private final UUID uuid;
     private final ArrayList<UUID> friends;
-    private ArrayList<UUID> onlineFriends;
     private final ArrayList<UUID> friendRequests;
+    private final PlayerManager playerManager;
+    private ArrayList<UUID> onlineFriends;
     private LoadingCache<UUID, TriState> onlineFriendsCache;
 
     public SimpleFriend(String name, UUID uuid, ArrayList<UUID> friends, ArrayList<UUID> onlineFriends, ArrayList<UUID> friendRequests) {
@@ -33,15 +35,40 @@ public class SimpleFriend {
         this.onlineFriends = onlineFriends;
         this.friendRequests = friendRequests;
 
+        this.playerManager = ServiceRegistry.first(PlayerManager.class);
+
         this.onlineFriendsCache = Caffeine.newBuilder()
                 .maximumSize(128)
                 .refreshAfterWrite(10, TimeUnit.SECONDS)
-                .build(k -> CloudConstants.playerManager.onlinePlayer(k) != null ? TriState.TRUE : TriState.FALSE);
+                .build(k -> this.playerManager.onlinePlayer(k) != null ? TriState.TRUE : TriState.FALSE);
 
         for (UUID friend : this.friends) {
             this.onlineFriendsCache.put(friend, TriState.NOT_SET);
             this.onlineFriendsCache.refresh(friend);
         }
+    }
+
+    public static CompletableFuture<@Nullable SimpleFriend> getSimpleFriendByUUID(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            String name = CloudConstants.playerManager.onlinePlayer(uuid).name();
+
+            Document friendDocument = MongoDatabaseImpl.mongoMethodsUtil().getDocument(uuid, MongoCollection.FRIENDS);
+            if (friendDocument == null) {
+                return null;
+            }
+
+            List<UUID> allFriends = friendDocument.getList("friends", String.class)
+                    .stream().map(UUID::fromString).toList();
+
+            List<UUID> onlineFriends = allFriends.stream().filter(id -> CloudConstants.playerManager.onlinePlayer(id) != null)
+                    .toList();
+
+            List<UUID> requests = friendDocument.getList("friendRequests", String.class)
+                    .stream().map(UUID::fromString).toList();
+
+            return new SimpleFriend(name, uuid, new ArrayList<>(allFriends),
+                    new ArrayList<>(onlineFriends), new ArrayList<>(requests));
+        });
     }
 
     public String name() {
@@ -68,42 +95,19 @@ public class SimpleFriend {
         return onlineFriendsCache;
     }
 
-    public static CompletableFuture<@Nullable SimpleFriend> getSimpleFriendByUUID(UUID uuid) {
-        return CompletableFuture.supplyAsync(() -> {
-            String name = CloudConstants.playerManager.onlinePlayer(uuid).name();
-
-            Document friendDocument = MongoDatabaseImpl.mongoMethodsUtil().getDocument(uuid, MongoCollection.FRIENDS);
-            if(friendDocument == null) {
-                return null;
-            }
-
-            List<UUID> allFriends = friendDocument.getList("friends", String.class)
-                    .stream().map(UUID::fromString).toList();
-
-            List<UUID> onlineFriends = allFriends.stream().filter(id -> CloudConstants.playerManager.onlinePlayer(id) != null)
-                    .toList();
-
-            List<UUID> requests = friendDocument.getList("friendRequests", String.class)
-                    .stream().map(UUID::fromString).toList();
-
-            return new SimpleFriend(name, uuid, new ArrayList<>(allFriends),
-                    new ArrayList<>(onlineFriends), new ArrayList<>(requests));
-        });
-    }
-
     public void update(boolean database) {
         this.onlineFriends = new ArrayList<>(friends.stream()
-                .filter(id -> CloudConstants.playerManager.onlinePlayer(id) != null)
+                .filter(id -> this.playerManager.onlinePlayer(id) != null)
                 .toList());
 
         for (UUID friend : this.friends) {
-            if(this.onlineFriendsCache.getIfPresent(friend) == null) {
+            if (this.onlineFriendsCache.getIfPresent(friend) == null) {
                 this.onlineFriendsCache.put(friend, TriState.NOT_SET);
             }
             this.onlineFriendsCache.refresh(friend);
         }
 
-        if(database) {
+        if (database) {
             MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friends",
                     this.friends.stream().map(UUID::toString).collect(Collectors.toList()), MongoCollection.FRIENDS);
             MongoDatabaseImpl.mongoMethodsUtil().insert(this.uuid, "friendRequests",

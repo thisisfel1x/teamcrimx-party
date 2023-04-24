@@ -10,9 +10,8 @@ import java.util.UUID;
 
 public class SimpleManager {
 
-    private Component prefix = Component.text("not set");
-
     private final PartyAndFriendsModule partyAndFriendsModule;
+    private Component prefix = Component.text("not set");
 
     public SimpleManager(PartyAndFriendsModule partyAndFriendsModule) {
         this.partyAndFriendsModule = partyAndFriendsModule;

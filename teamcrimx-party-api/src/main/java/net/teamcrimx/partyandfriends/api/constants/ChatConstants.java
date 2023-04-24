@@ -9,11 +9,6 @@ public class ChatConstants {
     public static Component partyPrefix = Component.text("Party", TextColor.fromHexString("#C800C8"))
             .append(Component.text(" ● ", NamedTextColor.DARK_GRAY))
             .append(Component.empty().color(NamedTextColor.GRAY));
-
-    public static Component friendPrefix = Component.text("Friends", TextColor.fromHexString("#73E2A7"))
-            .append(Component.text(" ● ", NamedTextColor.DARK_GRAY))
-            .append(Component.empty().color(NamedTextColor.GRAY));
-    
     private final static Component a = partyPrefix.append(Component.text("Liste der Untercommands", NamedTextColor.GRAY));
     private final static Component b = partyPrefix.append(Component.text("/party create", NamedTextColor.GRAY))
             .append(Component.text(" - ", NamedTextColor.DARK_GRAY)).append(Component.text("Erstelle eine Party", NamedTextColor.GRAY));
@@ -33,13 +28,14 @@ public class ChatConstants {
             .append(Component.text(" - ", NamedTextColor.DARK_GRAY)).append(Component.text("Zeige Details über deine Party", NamedTextColor.GRAY));
     private final static Component j = partyPrefix.append(Component.text("/pc", NamedTextColor.GRAY))
             .append(Component.text(" - ", NamedTextColor.DARK_GRAY)).append(Component.text("Schreibe im Partychat", NamedTextColor.GRAY));
-
     public static final Component partyHelpMessage = Component.empty().append(a).append(Component.newline())
             .append(b).append(Component.newline()).append(c).append(Component.newline()).append(d)
             .append(Component.newline()).append(e).append(Component.newline()).append(f).append(Component.newline())
             .append(g).append(Component.newline()).append(h).append(Component.newline()).append(j)
             .append(Component.newline()).append(i);
-
+    public static Component friendPrefix = Component.text("Friends", TextColor.fromHexString("#73E2A7"))
+            .append(Component.text(" ● ", NamedTextColor.DARK_GRAY))
+            .append(Component.empty().color(NamedTextColor.GRAY));
     private final static Component a1 = friendPrefix.append(Component.text("Liste der Untercommands", NamedTextColor.GRAY));
     private final static Component b1 = friendPrefix.append(Component.text("/friend add <Name>", NamedTextColor.GRAY))
             .append(Component.text(" - ", NamedTextColor.DARK_GRAY)).append(Component.text("Sende eine Freundschaftsanfrage", NamedTextColor.GRAY));

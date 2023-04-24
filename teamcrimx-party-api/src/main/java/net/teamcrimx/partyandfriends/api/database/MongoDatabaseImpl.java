@@ -9,9 +9,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class MongoDatabaseImpl {
 
-    private static @Nullable MongoClient mongoClient = null;
     public static @Nullable MongoMethodsUtil mongoMethodsUtil;
-
+    private static @Nullable MongoClient mongoClient = null;
     private static MongoDatabase networkDatabase;
 
     private static com.mongodb.client.MongoCollection<Document> friendCollection;

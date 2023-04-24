@@ -1,6 +1,7 @@
 package net.teamcrimx.partyandfriends.cloud.party.listener.player;
 
 import eu.cloudnetservice.driver.event.EventListener;
+import eu.cloudnetservice.driver.service.ServiceEnvironmentType;
 import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerServerSwitchEvent;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
@@ -28,8 +29,7 @@ public class ServerSwitchListener {
             return;
         }
 
-        if (targetServerName.equalsIgnoreCase("Proxy")
-                || targetServerName.equalsIgnoreCase("Node")) {
+        if(!ServiceEnvironmentType.minecraftServer(event.target().environment())) {
             return;
         }
 

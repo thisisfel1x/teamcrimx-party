@@ -23,7 +23,7 @@ public class ActivePartiesTracker {
 
     public void checkActiveParties() {
         for (SimpleParty simpleParty : this.activeParties.values()) {
-            if(simpleParty.partyMembers().size() > 1) {
+            if (simpleParty.partyMembers().size() > 1) {
                 continue;
             }
 

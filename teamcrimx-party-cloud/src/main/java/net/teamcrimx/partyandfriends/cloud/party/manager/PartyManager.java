@@ -55,10 +55,10 @@ public class PartyManager extends SimpleManager {
     }
 
     public @Nullable SimpleParty getPartyByCloudPlayer(CloudOfflinePlayer cloudPlayer) {
-        if (cloudPlayer.properties().contains(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)
-                && cloudPlayer.properties().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)) {
+        if (cloudPlayer.propertyHolder().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)
+                && cloudPlayer.propertyHolder().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY)) {
 
-            UUID partyUUID = cloudPlayer.properties().get(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY,
+            UUID partyUUID = cloudPlayer.propertyHolder().get(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY,
                     UUID.class);
             if (partyUUID == null) {
                 return null; // TODO: fehler
@@ -70,8 +70,8 @@ public class PartyManager extends SimpleManager {
     }
 
     public boolean isInParty(CloudPlayer cloudPlayer) {
-        return cloudPlayer.properties().contains(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY)
-                && cloudPlayer.properties().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, false);
+        return cloudPlayer.propertyHolder().contains(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY)
+                && cloudPlayer.propertyHolder().getBoolean(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, false);
     }
 
     public boolean isPartyLeader(CloudPlayer cloudPlayer, SimpleParty simpleParty) {
@@ -121,7 +121,7 @@ public class PartyManager extends SimpleManager {
 
         UUID partyId = UUID.randomUUID();
 
-        cloudPlayer.properties().append(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, true)
+        cloudPlayer.propertyHolder().append(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, true)
                 .append(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY, partyId);
         this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayer);
 
@@ -180,11 +180,11 @@ public class PartyManager extends SimpleManager {
 
         // Step 3 - add document property with id and expiration
         // TODO: implement check for type safety
-        JsonDocument invites = cloudPlayerToInvite.properties().getDocument("invites");
+        JsonDocument invites = cloudPlayerToInvite.propertyHolder().getDocument("invites");
 
         invites.append(simpleParty.partyId().toString(), System.currentTimeMillis() + (5 * 60 * 1000)); // expiration after 5 min
 
-        cloudPlayerToInvite.properties().append(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY, invites);
+        cloudPlayerToInvite.propertyHolder().append(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY, invites);
         this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayerToInvite);
 
         String senderName = "unknown";
@@ -225,7 +225,7 @@ public class PartyManager extends SimpleManager {
             return;
         }
 
-        JsonDocument invites = invitedCloudPlayer.properties().getDocument(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
+        JsonDocument invites = invitedCloudPlayer.propertyHolder().getDocument(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
 
         // Check expiration
         if (!invites.contains(simpleParty.partyId().toString())) {
@@ -244,7 +244,7 @@ public class PartyManager extends SimpleManager {
         simpleParty.partyMembers().add(invitedCloudPlayer.uniqueId());
         this.partyAndFriendsModule.getPartiesTracker().activeParties().put(simpleParty.partyId(), simpleParty);
 
-        invitedCloudPlayer.properties().append(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, true)
+        invitedCloudPlayer.propertyHolder().append(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY, true)
                 .append(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY, simpleParty.partyId())
                 .remove(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
         this.partyAndFriendsModule.playerManager().updateOnlinePlayer(invitedCloudPlayer);
@@ -271,8 +271,8 @@ public class PartyManager extends SimpleManager {
         }
 
         // Remove Document properties
-        cloudOfflinePlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
-        cloudOfflinePlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
+        cloudOfflinePlayer.propertyHolder().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
+        cloudOfflinePlayer.propertyHolder().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
         this.partyAndFriendsModule.playerManager().updateOfflinePlayer(cloudOfflinePlayer);
 
         // Remove from object
@@ -353,8 +353,8 @@ public class PartyManager extends SimpleManager {
         }
 
         // Remove Document properties
-        cloudPlayerToKick.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
-        cloudPlayerToKick.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
+        cloudPlayerToKick.propertyHolder().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
+        cloudPlayerToKick.propertyHolder().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
         this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayerToKick);
 
         // Remove from object
@@ -391,8 +391,8 @@ public class PartyManager extends SimpleManager {
                 continue;
             }
 
-            loopPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
-            loopPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
+            loopPlayer.propertyHolder().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
+            loopPlayer.propertyHolder().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
             this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayer);
 
             loopPlayer.playerExecutor().sendChatMessage(this.partyPrefix.append(Component.text("Die Party wurde aufgelöst, du wurdest entfernt")));
@@ -410,9 +410,9 @@ public class PartyManager extends SimpleManager {
             return;
         }
 
-        cloudPlayer.properties().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
-        cloudPlayer.properties().remove(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
-        cloudPlayer.properties().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
+        cloudPlayer.propertyHolder().remove(PartyConstants.PARTY_UUID_DOCUMENT_PROPERTY);
+        cloudPlayer.propertyHolder().remove(PartyConstants.PARTY_INVITATIONS_DOCUMENT_PROPERTY);
+        cloudPlayer.propertyHolder().remove(PartyConstants.HAS_PARTY_DOCUMENT_PROPERTY);
         this.partyAndFriendsModule.playerManager().updateOnlinePlayer(cloudPlayer);
     }
 
