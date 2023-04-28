@@ -21,7 +21,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 @PlatformPlugin(
         platform = "velocity",
-        name = "Velocity-Party",
+        name = "partyandfriends-velocity",
         version = "{project.build.person}"
 )
 public class VelocityParty implements PlatformEntrypoint {

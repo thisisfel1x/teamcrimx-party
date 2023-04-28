@@ -11,6 +11,7 @@
         <module>teamcrimx-party-api</module>
         <module>teamcrimx-party-velocity</module>
         <module>teamcrimx-party-cloud</module>
+        <module>teamcrimx-party-paper</module>
     </modules>
 
     <properties>
