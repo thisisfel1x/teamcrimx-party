@@ -5,12 +5,10 @@ import dev.triumphteam.gui.builder.item.SkullBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
 import dev.triumphteam.gui.guis.PaginatedGui;
-import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
-import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.teamcrimx.partyandfriends.api.chat.ChatUtils;
+import net.teamcrimx.partyandfriends.api.NetworkPlayer;
 import net.teamcrimx.partyandfriends.api.friends.SimpleFriend;
 import net.teamcrimx.partyandfriends.paper.PaperPartyAndFriendsPlugin;
 import org.bukkit.Bukkit;
@@ -21,16 +19,17 @@ import java.util.List;
 
 public class FriendInventory {
 
-    private static PaperPartyAndFriendsPlugin paperPartyAndFriendsPlugin;
+    private final PaperPartyAndFriendsPlugin paperPartyAndFriendsPlugin;
+    private static final String headTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTM1YmUzZWY3MzU4ZmY4NjNlMzA2MDg0OGRiYTM2ODdhZTMzYWI5NTg4NzQwZmQ3YjE4OWRjYTZmNzNlOWZjMiJ9fX0=";
 
     public FriendInventory(PaperPartyAndFriendsPlugin paperPartyAndFriendsPlugin) {
-        FriendInventory.paperPartyAndFriendsPlugin = paperPartyAndFriendsPlugin;
+        this.paperPartyAndFriendsPlugin = paperPartyAndFriendsPlugin;
     }
 
-    private static PaginatedGui friendInventory;
+    private PaginatedGui friendInventory;
 
 
-    public static void paginatedGui(Player player) {
+    public void getFriendOverviewGui(Player player) {
         SimpleFriend simpleFriend = paperPartyAndFriendsPlugin.simpleFriendMap().get(player.getUniqueId());
 
         if(simpleFriend == null) {
@@ -38,73 +37,76 @@ public class FriendInventory {
             return;
         }
 
-        friendInventory = Gui.paginated()
+        this.friendInventory = Gui.paginated()
                 .title(Component.text("● Deine Freunde"))
                 .rows(6)
                 .pageSize(36)
                 .create();
 
-        friendInventory.disableAllInteractions();
+        this.friendInventory.disableAllInteractions();
 
-        friendInventory.getFiller().fillTop(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
+        this.friendInventory.getFiller().fillTop(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
                 .name(Component.empty()).asGuiItem());
-        friendInventory.getFiller().fillBottom(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
+        this.friendInventory.getFiller().fillBottom(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE)
                 .name(Component.empty()).asGuiItem());
 
 
-        friendInventory.setItem(6, 8, dev.triumphteam.gui.builder.item.ItemBuilder.skull()
+        this.friendInventory.setItem(6, 8, dev.triumphteam.gui.builder.item.ItemBuilder.skull()
                 .texture("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmQ2OWUwNmU1ZGFkZmQ4NGU1ZjNkMWMyMTA2M2YyNTUzYjJmYTk0NWVlMWQ0ZDcxNTJmZGM1NDI1YmMxMmE5In19fQ==")
                 .name(Component.textOfChildren(Component.text("● ", NamedTextColor.DARK_GRAY),
                         Component.text("Vorherige Seite", NamedTextColor.GRAY)))
                 .asGuiItem(event -> {
-                    friendInventory.previous();
+                    this.friendInventory.previous();
                 }));
 
-        friendInventory.setItem(6, 9, dev.triumphteam.gui.builder.item.ItemBuilder.skull()
+        this.friendInventory.setItem(6, 9, dev.triumphteam.gui.builder.item.ItemBuilder.skull()
                 .texture("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTliZjMyOTJlMTI2YTEwNWI1NGViYTcxM2FhMWIxNTJkNTQxYTFkODkzODgyOWM1NjM2NGQxNzhlZDIyYmYifX19")
                 .name(Component.textOfChildren(Component.text("● ", NamedTextColor.DARK_GRAY),
                         Component.text("Nächste Seite", NamedTextColor.GRAY)))
                 .asGuiItem(event -> {
-                    friendInventory.next();
+                    this.friendInventory.next();
                 }));
 
         Bukkit.getScheduler().runTaskAsynchronously(paperPartyAndFriendsPlugin.plugin(), () -> {
             List<GuiItem> guiItems = simpleFriend.friends().stream()
-                    .sorted((o1, o2) -> Boolean.compare(paperPartyAndFriendsPlugin.playerManager().onlinePlayer(o1) != null,
-                            paperPartyAndFriendsPlugin.playerManager().onlinePlayer(o2) != null))
+                    .sorted((o1, o2) -> Boolean.compare(paperPartyAndFriendsPlugin.playerManager().onlinePlayer(o1) == null,
+                            paperPartyAndFriendsPlugin.playerManager().onlinePlayer(o2) == null))
                     .map(uuid -> {
+                        NetworkPlayer networkPlayer = new NetworkPlayer(uuid);
                         SkullBuilder itemBuilder = ItemBuilder.skull();
 
-                        Component lore2 = paperPartyAndFriendsPlugin.miniMessage()
+                        Component lore3 = paperPartyAndFriendsPlugin.miniMessage()
                                 .deserialize("<#FBBF2B>Klicke für weitere Optionen").decoration(TextDecoration.ITALIC, false);
 
-                        CloudPlayer cloudPlayer = paperPartyAndFriendsPlugin.playerManager().onlinePlayer(uuid);
-                        if(cloudPlayer != null) {
-                            itemBuilder.name(ChatUtils.getDisplayColor(cloudPlayer.uniqueId()).append(Component.text(cloudPlayer.name())));
-                            itemBuilder.owner(Bukkit.getOfflinePlayer(cloudPlayer.uniqueId()));
+                        itemBuilder.name(networkPlayer.formattedName().decoration(TextDecoration.ITALIC, false));
 
-                            String onlineServer = cloudPlayer.connectedService().serverName();
+                        if(networkPlayer.isOnline()) {
+                            itemBuilder.owner(Bukkit.getOfflinePlayer(networkPlayer.uuid()));
+
+                            String onlineServer = networkPlayer.connectedServer();
                             Component lore1 = paperPartyAndFriendsPlugin.miniMessage()
-                                    .deserialize("<gray>Online auf <#58A5FA>" + onlineServer);
+                                    .deserialize("<gray>Online auf <#58A5FA>" + onlineServer)
+                                    .decoration(TextDecoration.ITALIC, false);
 
-                            itemBuilder.lore(lore1, Component.empty(), lore2.decoration(TextDecoration.ITALIC, false));
+                            Component lore2 = Component.text("Rang: ", NamedTextColor.GRAY).append(networkPlayer.rank())
+                                    .decoration(TextDecoration.ITALIC, false);
+
+                            itemBuilder.lore(lore1, lore2, Component.empty(), lore3.decoration(TextDecoration.ITALIC, false));
                         } else {
-                            CloudOfflinePlayer cloudOfflinePlayer = paperPartyAndFriendsPlugin.playerManager().offlinePlayer(uuid);
+                            itemBuilder.texture(headTexture);
 
-                            itemBuilder.name(ChatUtils.getDisplayColor(cloudOfflinePlayer.uniqueId()).append(Component.text(cloudOfflinePlayer.name())));
-                            itemBuilder.owner(Bukkit.getOfflinePlayer(cloudOfflinePlayer.uniqueId()));
-
-                            itemBuilder.lore(Component.empty(), lore2.decoration(TextDecoration.ITALIC, false));
+                            itemBuilder.lore(Component.empty(), lore3.decoration(TextDecoration.ITALIC, false));
                         }
-
-                        return itemBuilder.asGuiItem();
+                        return itemBuilder.asGuiItem(event -> {
+                            this.paperPartyAndFriendsPlugin.friendDetailInventory().openDetailInventory(player, simpleFriend, networkPlayer);
+                        });
 
                     }).toList();
 
-            guiItems.forEach(guiItem -> friendInventory.addItem(guiItem));
-            friendInventory.update();
+            guiItems.forEach(guiItem -> this.friendInventory.addItem(guiItem));
+            this.friendInventory.update();
         });
 
-        friendInventory.open(player);
+        this.friendInventory.open(player);
     }
 }

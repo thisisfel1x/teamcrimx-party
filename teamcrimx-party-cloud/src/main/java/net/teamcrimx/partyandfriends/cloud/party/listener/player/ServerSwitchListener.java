@@ -29,7 +29,8 @@ public class ServerSwitchListener {
             return;
         }
 
-        if(!ServiceEnvironmentType.minecraftServer(event.target().environment())) {
+        if (targetServerName.equalsIgnoreCase("Proxy")
+                || targetServerName.equalsIgnoreCase("Node")) {
             return;
         }
 

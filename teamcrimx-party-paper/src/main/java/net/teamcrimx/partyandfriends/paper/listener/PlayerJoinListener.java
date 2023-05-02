@@ -2,6 +2,7 @@ package net.teamcrimx.partyandfriends.paper.listener;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.teamcrimx.partyandfriends.api.friends.SimpleFriend;
 import net.teamcrimx.partyandfriends.paper.PaperPartyAndFriendsPlugin;
 import org.bukkit.Bukkit;
@@ -41,7 +42,8 @@ public class PlayerJoinListener implements Listener {
 
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         head.editMeta(SkullMeta.class, meta -> {
-            meta.displayName(Component.text("Profil", TextColor.fromHexString("#4940CC")));
+            meta.displayName(Component.text("Profil", TextColor.fromHexString("#4940CC"))
+                    .decoration(TextDecoration.ITALIC, false));
             meta.setPlayerProfile(player.getPlayerProfile());
         });
 

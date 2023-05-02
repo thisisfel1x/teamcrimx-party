@@ -40,7 +40,7 @@ public class InteractListener implements Listener {
             if(event.hasItem()) {
                 switch (item.getType()) {
                     case PLAYER_HEAD -> {
-                        FriendInventory.paginatedGui(player);
+                        this.paperPartyAndFriendsPlugin.friendInventory().getFriendOverviewGui(player);
                         event.setCancelled(true);
                     }
                 }

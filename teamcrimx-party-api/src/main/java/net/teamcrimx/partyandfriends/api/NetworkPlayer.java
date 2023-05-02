@@ -1,28 +1,46 @@
 package net.teamcrimx.partyandfriends.api;
 
-import eu.cloudnetservice.driver.inject.InjectionLayer;
-import eu.cloudnetservice.driver.permission.PermissionManagement;
+import eu.cloudnetservice.driver.registry.ServiceRegistry;
+import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
+import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
+import eu.cloudnetservice.modules.bridge.player.NetworkServiceInfo;
+import eu.cloudnetservice.modules.bridge.player.PlayerManager;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.teamcrimx.partyandfriends.api.chat.ChatUtils;
+import net.teamcrimx.partyandfriends.api.cloud.CloudUtils;
 
 import java.util.UUID;
 
 public class NetworkPlayer {
 
+    private final PlayerManager playerManager;
     private final UUID uuid;
-    private final String name;
-    private Component chatColor;
-    private Component formattedName;
+    private String name;
+    private final Component chatColor;
+    private final Component formattedName;
+    private final Component rank;
 
-    public NetworkPlayer(UUID uuid, String name) {
+    public NetworkPlayer(UUID uuid) {
+        this.playerManager = ServiceRegistry.first(PlayerManager.class);
+
         this.uuid = uuid;
-        this.name = name;
 
-        this.chatColor = ChatUtils.getDisplayColor(this.uuid);
+        CloudOfflinePlayer cloudOfflinePlayer = this.playerManager.offlinePlayer(this.uuid);
+        if(cloudOfflinePlayer != null) {
+            name = cloudOfflinePlayer.name();
+        }
+
+        this.chatColor = CloudUtils.getDisplayColor(this.uuid);
         this.formattedName = Component.text(name, this.chatColor.color());
+        this.rank = CloudUtils.getRank(this.uuid);
 
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public UUID uuid() {
+        return uuid;
     }
 
     public Component chatColor() {
@@ -32,4 +50,29 @@ public class NetworkPlayer {
     public Component formattedName() {
         return formattedName;
     }
+
+    public Component rank() {
+        return rank;
+    }
+
+    public boolean isOnline() {
+        return this.playerManager.onlinePlayer(this.uuid) != null;
+    }
+
+    public String connectedServer() {
+        String toReturn = "Offline";
+        CloudPlayer cloudPlayer = this.playerManager.onlinePlayer(this.uuid);
+
+        if(cloudPlayer == null) {
+            return toReturn;
+        }
+
+        NetworkServiceInfo networkServiceInfo = cloudPlayer.connectedService();
+        if(networkServiceInfo == null) {
+            return toReturn;
+        }
+
+        return networkServiceInfo.serverName();
+    }
+
 }

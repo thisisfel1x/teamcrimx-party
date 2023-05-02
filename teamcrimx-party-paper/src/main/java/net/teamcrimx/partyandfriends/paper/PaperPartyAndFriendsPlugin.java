@@ -8,6 +8,7 @@ import jakarta.inject.Inject;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.teamcrimx.partyandfriends.api.database.MongoDatabaseImpl;
 import net.teamcrimx.partyandfriends.api.friends.SimpleFriend;
+import net.teamcrimx.partyandfriends.paper.inventories.FriendDetailInventory;
 import net.teamcrimx.partyandfriends.paper.inventories.FriendInventory;
 import net.teamcrimx.partyandfriends.paper.listener.InteractListener;
 import net.teamcrimx.partyandfriends.paper.listener.PlayerJoinListener;
@@ -34,6 +35,9 @@ public class PaperPartyAndFriendsPlugin implements PlatformEntrypoint {
 
     private final MiniMessage message = MiniMessage.builder().build();
 
+    private FriendInventory friendInventory;
+    private FriendDetailInventory friendDetailInventory;
+
     @Inject
     public PaperPartyAndFriendsPlugin(Plugin plugin, PluginManager pluginManager) {
         this.plugin = plugin;
@@ -51,7 +55,8 @@ public class PaperPartyAndFriendsPlugin implements PlatformEntrypoint {
     }
 
     private void initializeInventories() {
-        new FriendInventory(this);
+        this.friendInventory = new FriendInventory(this);
+        this.friendDetailInventory = new FriendDetailInventory(this);
     }
 
     private void registerListener() {
@@ -73,5 +78,13 @@ public class PaperPartyAndFriendsPlugin implements PlatformEntrypoint {
 
     public MiniMessage miniMessage() {
         return message;
+    }
+
+    public FriendInventory friendInventory() {
+        return friendInventory;
+    }
+
+    public FriendDetailInventory friendDetailInventory() {
+        return friendDetailInventory;
     }
 }

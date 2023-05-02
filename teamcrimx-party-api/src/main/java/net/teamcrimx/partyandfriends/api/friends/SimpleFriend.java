@@ -30,7 +30,7 @@ public class SimpleFriend extends NetworkPlayer {
     private LoadingCache<UUID, TriState> onlineFriendsCache;
 
     public SimpleFriend(String name, UUID uuid, ArrayList<UUID> friends, ArrayList<UUID> onlineFriends, ArrayList<UUID> friendRequests) {
-        super(uuid, name);
+        super(uuid);
         this.name = name;
         this.uuid = uuid;
         this.friends = friends;
