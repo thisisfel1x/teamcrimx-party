@@ -6,6 +6,7 @@ import eu.cloudnetservice.modules.bridge.event.BridgeProxyPlayerServerSwitchEven
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.teamcrimx.partyandfriends.api.constants.ChatConstants;
 import net.teamcrimx.partyandfriends.api.party.SimpleParty;
 import net.teamcrimx.partyandfriends.cloud.PartyAndFriendsModule;
@@ -62,8 +63,8 @@ public class ServerSwitchListener {
 
             partyMemberCloudReference.playerExecutor().connect(targetServerName);
             partyMemberCloudReference.playerExecutor().sendChatMessage(ChatConstants.partyPrefix.append(Component
-                            .text("Deine Party betritt den Server "))
-                    .append(Component.text(targetServerName, NamedTextColor.GREEN)));
+                            .text("Deine Party betritt den Server ",NamedTextColor.GRAY))
+                    .append(Component.text(targetServerName, TextColor.fromHexString("#58A5FA"))));
 
         }
     }

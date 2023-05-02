@@ -19,20 +19,18 @@ import java.util.List;
 
 public class FriendInventory {
 
-    private final PaperPartyAndFriendsPlugin paperPartyAndFriendsPlugin;
     private static final String headTexture = "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTM1YmUzZWY3MzU4ZmY4NjNlMzA2MDg0OGRiYTM2ODdhZTMzYWI5NTg4NzQwZmQ3YjE4OWRjYTZmNzNlOWZjMiJ9fX0=";
+    private final PaperPartyAndFriendsPlugin paperPartyAndFriendsPlugin;
+    private PaginatedGui friendInventory;
 
     public FriendInventory(PaperPartyAndFriendsPlugin paperPartyAndFriendsPlugin) {
         this.paperPartyAndFriendsPlugin = paperPartyAndFriendsPlugin;
     }
 
-    private PaginatedGui friendInventory;
-
-
     public void getFriendOverviewGui(Player player) {
         SimpleFriend simpleFriend = paperPartyAndFriendsPlugin.simpleFriendMap().get(player.getUniqueId());
 
-        if(simpleFriend == null) {
+        if (simpleFriend == null) {
             player.sendMessage(Component.text("Dein Profil konnte nicht geladen werden!"));
             return;
         }
@@ -80,7 +78,7 @@ public class FriendInventory {
 
                         itemBuilder.name(networkPlayer.formattedName().decoration(TextDecoration.ITALIC, false));
 
-                        if(networkPlayer.isOnline()) {
+                        if (networkPlayer.isOnline()) {
                             itemBuilder.owner(Bukkit.getOfflinePlayer(networkPlayer.uuid()));
 
                             String onlineServer = networkPlayer.connectedServer();

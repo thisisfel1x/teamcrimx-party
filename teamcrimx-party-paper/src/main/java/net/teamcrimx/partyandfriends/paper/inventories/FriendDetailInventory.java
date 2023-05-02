@@ -2,8 +2,10 @@ package net.teamcrimx.partyandfriends.paper.inventories;
 
 import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
+import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import net.kyori.adventure.text.Component;
 import net.teamcrimx.partyandfriends.api.NetworkPlayer;
+import net.teamcrimx.partyandfriends.api.friends.FriendConstants;
 import net.teamcrimx.partyandfriends.api.friends.SimpleFriend;
 import net.teamcrimx.partyandfriends.api.party.PartyConstants;
 import net.teamcrimx.partyandfriends.paper.PaperPartyAndFriendsPlugin;
@@ -31,34 +33,43 @@ public class FriendDetailInventory {
         gui.getFiller().fillTop(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE).name(Component.empty()).asGuiItem());
         gui.getFiller().fillBottom(ItemBuilder.from(Material.GRAY_STAINED_GLASS_PANE).name(Component.empty()).asGuiItem());
 
-        gui.setItem(1, 1, ItemBuilder.skull()
+        gui.setItem(2, 2, ItemBuilder.skull()
                 .name(target.formattedName())
                 .owner(Bukkit.getOfflinePlayer(target.uuid()))
                 .asGuiItem());
 
-        gui.setItem(1, 3, ItemBuilder.from(Material.BARRIER)
+        gui.setItem(2, 4, ItemBuilder.from(Material.BARRIER)
                         .name(Component.text("Freund entfernen"))
                 .asGuiItem(event -> {
                     event.getWhoClicked().closeInventory();
-                    ((Player) event.getWhoClicked()).performCommand("/friend remove " + target.name());
+
+                    this.paperPartyAndFriendsPlugin.sendChannelMessageToNode(FriendConstants.FRIEND_CHANNEL,
+                            FriendConstants.FRIEND_REMOVE_MESSAGE,
+                            DataBuf.empty().writeUniqueId(owner.uuid()).writeString(target.name()));
                 }));
 
-        if(owner.isOnline()) {
-            gui.setItem(1, 4, ItemBuilder.from(Material.SPYGLASS)
-                            .name(Component.text("Freund nachspringen"))
+        if(target.isOnline()) {
+            gui.setItem(2, 6, ItemBuilder.from(Material.SPYGLASS)
+                    .name(Component.text("Freund nachspringen"))
                     .asGuiItem(event -> {
                         event.getWhoClicked().closeInventory();
-                        ((Player) event.getWhoClicked()).performCommand("/friend jump " + target.name());
+
+                        this.paperPartyAndFriendsPlugin.sendChannelMessageToNode(FriendConstants.FRIEND_CHANNEL,
+                                FriendConstants.FRIEND_JUMP_MESSAGE,
+                                DataBuf.empty().writeUniqueId(owner.uuid()).writeString(target.name()));
                     }));
-            gui.setItem(1, 5, ItemBuilder.from(Material.CAKE)
+            gui.setItem(2, 7, ItemBuilder.from(Material.CAKE)
                     .name(Component.text("Freund in Party einladen"))
                     .asGuiItem(event -> {
                         event.getWhoClicked().closeInventory(); // TODO: party check
-                        ((Player) event.getWhoClicked()).performCommand("/party invite " + target.name());
+
+                        this.paperPartyAndFriendsPlugin.sendChannelMessageToNode(PartyConstants.PARTY_CHANNEL,
+                                PartyConstants.PARTY_INVITE_MESSAGE,
+                                DataBuf.empty().writeString(target.name()).writeUniqueId(owner.uuid()));
+
                     }));
         }
 
         gui.open(player);
     }
-
 }

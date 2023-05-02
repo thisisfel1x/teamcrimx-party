@@ -1,5 +1,7 @@
 package net.teamcrimx.partyandfriends.paper;
 
+import eu.cloudnetservice.driver.channel.ChannelMessage;
+import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.driver.registry.ServiceRegistry;
 import eu.cloudnetservice.ext.platforminject.api.PlatformEntrypoint;
 import eu.cloudnetservice.ext.platforminject.api.stereotype.PlatformPlugin;
@@ -62,6 +64,15 @@ public class PaperPartyAndFriendsPlugin implements PlatformEntrypoint {
     private void registerListener() {
         this.pluginManager.registerEvents(new PlayerJoinListener(this), this.plugin);
         this.pluginManager.registerEvents(new InteractListener(this), this.plugin);
+    }
+
+    public void sendChannelMessageToNode(String channelName, String message, DataBuf dataBuf) {
+        ChannelMessage.builder()
+                .channel(channelName)
+                .message(message)
+                .buffer(dataBuf)
+                .targetNodes()
+                .build().send();
     }
 
     public Plugin plugin() {
