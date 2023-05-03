@@ -4,6 +4,7 @@ import dev.triumphteam.gui.builder.item.ItemBuilder;
 import dev.triumphteam.gui.guis.Gui;
 import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.teamcrimx.partyandfriends.api.NetworkPlayer;
 import net.teamcrimx.partyandfriends.api.friends.FriendConstants;
 import net.teamcrimx.partyandfriends.api.friends.SimpleFriend;
@@ -39,7 +40,7 @@ public class FriendDetailInventory {
                 .asGuiItem());
 
         gui.setItem(2, 4, ItemBuilder.from(Material.BARRIER)
-                        .name(Component.text("Freund entfernen"))
+                        .name(Component.text("Freund entfernen", NamedTextColor.RED))
                 .asGuiItem(event -> {
                     event.getWhoClicked().closeInventory();
 
@@ -66,7 +67,6 @@ public class FriendDetailInventory {
                         this.paperPartyAndFriendsPlugin.sendChannelMessageToNode(PartyConstants.PARTY_CHANNEL,
                                 PartyConstants.PARTY_INVITE_MESSAGE,
                                 DataBuf.empty().writeString(target.name()).writeUniqueId(owner.uuid()));
-
                     }));
         }
 

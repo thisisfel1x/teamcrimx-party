@@ -5,6 +5,7 @@ import eu.cloudnetservice.driver.network.buffer.DataBuf;
 import eu.cloudnetservice.modules.bridge.player.CloudOfflinePlayer;
 import eu.cloudnetservice.modules.bridge.player.CloudPlayer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.teamcrimx.partyandfriends.api.constants.ChatConstants;
 import net.teamcrimx.partyandfriends.api.party.PartyConstants;
@@ -193,8 +194,14 @@ public class PartyManager extends SimpleManager {
             senderName = cloudPlayer.name();
         }
 
-        cloudPlayerToInvite.playerExecutor().sendChatMessage(this.partyPrefix
-                .append(Component.text("Du hast einen Invite zu der Party von " + senderName + " erhalten")));
+        Component a = Component.text("Du hast einen Invite zu der Party von " + senderName + " erhalten. Klicke zum ", NamedTextColor.GRAY);
+        Component b = Component.text("ANNEHMEN", NamedTextColor.GREEN)
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/party accept " + cloudPlayerToInvite.name()));
+        Component c = Component.text("ABLEHNEN", NamedTextColor.RED)
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/party deny " + cloudPlayerToInvite.name()));
+
+        this.tryToSendMessageToPlayer(cloudPlayerToInvite.uniqueId(),
+                Component.textOfChildren(a, b, Component.text(" | ", NamedTextColor.DARK_GRAY), c));
 
         sender.playerExecutor().sendChatMessage(this.partyPrefix
                 .append(Component.text("Der Spieler " + cloudPlayerToInvite.name() + " wurde erfolgreich eingeladen")));
